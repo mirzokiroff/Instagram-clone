@@ -3,6 +3,9 @@ from rest_framework.exceptions import NotAuthenticated, PermissionDenied
 from rest_framework.generics import ListCreateAPIView, ListAPIView, \
     RetrieveUpdateDestroyAPIView, CreateAPIView
 from rest_framework.parsers import MultiPartParser
+from rest_framework.viewsets import ModelViewSet
+from rest_framework_simplejwt.tokens import RefreshToken
+
 from shared.permissions import IsPublicAccount
 
 from apps.users.serializers import *
@@ -14,19 +17,20 @@ from django.contrib.auth import authenticate, login
 from apps.users.serializers import UserProfileSerializer
 
 
-class AccountViewSet(generics.RetrieveUpdateDestroyAPIView):
+class AccountViewSet(ModelViewSet):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
-    permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser]
-    lookup_field = 'pk'
+    permission_classes = [IsAuthenticated, ]
+    parser_classes = [MultiPartParser, ]
+    # lookup_field = 'pk'
 
 
-class UserDetailView(RetrieveUpdateDestroyAPIView):
+class UserDetailView(ModelViewSet):
     queryset = UserProfile.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
     lookup_field = 'pk'
+    http_method_names = ('get', 'delete', 'patch')
 
 
 class RegisterView(CreateAPIView):
@@ -34,35 +38,25 @@ class RegisterView(CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            user = UserProfile.objects.create_user(**serializer.validated_data)
-            if request.data.get('is_superuser'):
-                user.is_superuser = True
-                user.set_password('0000')
-                user.save()
-            token, created = Token.objects.get_or_create(user=user)
-            return Response({'token': token.key}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        instance.set_password(instance.password)
+        instance.save()
 
 
 class LoginView(CreateAPIView):
     serializer_class = LoginSerializer
     permission_classes = (permissions.AllowAny,)
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            username = serializer.validated_data['username'],
-            password = serializer.validated_data['password']
-            user = authenticate(username=username, password=password)
-            if user:
-                login(request, user)
-                token, created = Token.objects.get_or_create(user=user)
-                return Response({'token': token.key}, status=status.HTTP_200_OK)
-            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def create(self, request, *args, **kwargs):
+        username = request.data.get("username")
+        password = request.data.get("password")
+        user = authenticate(username=username, password=password)
+        if user:
+            refresh = RefreshToken.for_user(user)
+            return Response({"refresh": str(refresh), "access": str(refresh.access_token)})
+        else:
+            return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class FollowListCreateAPIVIew(ListCreateAPIView):

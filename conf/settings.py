@@ -1,6 +1,6 @@
 from datetime import timedelta
 from pathlib import Path
-from dotenv import *
+from dotenv import load_dotenv
 # from decouple import config
 
 import os
@@ -40,7 +40,7 @@ INSTALLED_APPS = [
 
     # Third party libraries
     'rest_framework',
-    'rest_framework.authtoken',
+    'rest_framework_simplejwt',
     'drf_yasg',
     'django_filters',
     'storages',
@@ -148,8 +148,8 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
     # 'EXCEPTION_HANDLER': 'utils.exceptions.custom_exception_handler',
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 50
+    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    # 'PAGE_SIZE': 50
     # 'DEFAULT_THROTTLE_CLASSES': [
     #     'rest_framework.throttling.AnonRateThrottle',
     #     'rest_framework.throttling.UserRateThrottle'

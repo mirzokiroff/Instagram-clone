@@ -1,19 +1,23 @@
 from collections import OrderedDict
 
 from rest_framework.exceptions import ValidationError
-from rest_framework.fields import SkipField
+from rest_framework.fields import SkipField, HiddenField, CurrentUserDefault
 from rest_framework.relations import PKOnlyObject
 from rest_framework.serializers import ModelSerializer
 from apps.content.models import *
 
 
 class MediaSerializer(ModelSerializer):  # noqa
+    user = HiddenField(default=CurrentUserDefault())
+
     class Meta:
         model = Media
         fields = '__all__'
 
 
 class PostSerializer(ModelSerializer):
+    user = HiddenField(default=CurrentUserDefault())
+
     class Meta:
         model = Post
         fields = '__all__'
@@ -51,36 +55,48 @@ class PostSerializer(ModelSerializer):
 
 
 class PostLikeSerializer(ModelSerializer):
+    user = HiddenField(default=CurrentUserDefault())
+
     class Meta:
         model = PostLike
         fields = '__all__'
 
 
 class StorySerializer(ModelSerializer):
+    user = HiddenField(default=CurrentUserDefault())
+
     class Meta:
         model = Story
         fields = '__all__'
 
 
 class StoryLikeSerializer(ModelSerializer):  # noqa
+    user = HiddenField(default=CurrentUserDefault())
+
     class Meta:
         model = StoryLike
         fields = '__all__'
 
 
 class CommentSerializer(ModelSerializer):
+    user = HiddenField(default=CurrentUserDefault())
+
     class Meta:
         model = Comment
         fields = '__all__'
 
 
 class CommentLikeSerializer(ModelSerializer):
+    user = HiddenField(default=CurrentUserDefault())
+
     class Meta:
         model = CommentLike
         fields = '__all__'
 
 
 class HighlightSerializer(ModelSerializer):
+    user = HiddenField(default=CurrentUserDefault())
+
     class Meta:
         model = Highlight
         fields = '__all__'

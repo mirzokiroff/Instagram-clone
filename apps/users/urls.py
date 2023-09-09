@@ -1,10 +1,15 @@
-from django.urls import path
+from django.urls import path, include
 from apps.users.views import *
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
+from rest_framework.routers import DefaultRouter
+
+router = DefaultRouter()
+router.register('user', UserDetailView, basename='user'),
+router.register('profile', AccountViewSet, basename='profile'),
 
 urlpatterns = [
-    path('profile/<int:pk>/', AccountViewSet.as_view(), name='profile'),
-    path('user/<int:pk>/', UserDetailView.as_view(), name='user-detail'),
+    path('', include(router.urls)),
+    path('', include(router.urls)),
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
     path('following', FollowListCreateAPIVIew.as_view()),

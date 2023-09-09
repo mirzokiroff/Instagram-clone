@@ -3,23 +3,26 @@ from rest_framework import serializers
 from apps.users.models import UserProfile
 from rest_framework.fields import IntegerField, DateTimeField, HiddenField, CurrentUserDefault
 from rest_framework.relations import SlugRelatedField
+
+
 # from apps.content.serializers import *
 
 
 class UserProfileSerializer(ModelSerializer):
-    followers = IntegerField(read_only=True)
-    following = IntegerField(read_only=True)
+    user = HiddenField(default=CurrentUserDefault())
     date = DateTimeField(read_only=True)
 
     class Meta:
         model = UserProfile
-        fields = '__all__'
+        exclude = ['is_superuser', 'first_name', 'last_name', 'is_staff', 'groups', 'user_permissions', 'last_login',
+                   'date_joined', 'followers', 'following']
 
         def to_representation(self, instance):
             data = super().to_representation(instance)
-            # data['followers'] = instance.followers_count
-            # data['following'] = instance.following_count
+            data['followers'] = instance.followers_count
+            data['following'] = instance.following_count
             return data
+
 
 
 class UserViewProfileModelSerializer(ModelSerializer):
@@ -75,30 +78,24 @@ class UserFollowingModelSerializer(ModelSerializer):
         return {'message': "you've followed successfully"}
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(ModelSerializer):
+    user = HiddenField(default=CurrentUserDefault())
+
     class Meta:
         model = UserProfile
-        fields = ['id', 'username', 'email', 'password', 'is_superuser']
-        extra_kwargs = {
-            'password': {'write_only': True},
-            'is_superuser': {'read_only': True}
-        }
-
-    def create(self, validated_data):
-        is_superuser = validated_data.pop('is_superuser', False)
-        user = UserProfile.objects.create_user(**validated_data)
-        if is_superuser:
-            user.is_superuser = True
-            user.save()
-        return user
+        fields = ['id', 'username', 'email', 'password', 'user']
 
 
-class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField(max_length=111)
-    password = serializers.CharField(write_only=True)
+class LoginSerializer(ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['username', 'password']
+        username = serializers.CharField(max_length=111)
+        password = serializers.CharField(write_only=True)
 
 
-class RegisterSerializer(serializers.Serializer):
-    username = serializers.CharField(max_length=111)
-    email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
+class RegisterSerializer(ModelSerializer):
+    class Meta:
+        model = UserProfile
+        exclude = ['is_superuser', 'first_name', 'last_name', 'is_staff', 'groups', 'user_permissions', 'last_login',
+                   'date_joined', 'followers', 'following']

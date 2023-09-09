@@ -1,25 +1,28 @@
-from rest_framework.generics import ListCreateAPIView, DestroyAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import *
 
 # Create your views here.
+from rest_framework.viewsets import ModelViewSet
+
 from apps.content.serializers import *
 
 
-class MediaViewSet(ListCreateAPIView, DestroyAPIView):
+class MediaViewSet(ModelViewSet):
     queryset = Media.objects.all()
     serializer_class = MediaSerializer
     lookup_field = 'pk'
 
 
-class PostViewSet(ListCreateAPIView, RetrieveUpdateDestroyAPIView):
+class PostViewSet(ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     lookup_field = 'pk'
 
 
-class PostLikeViewSet(ListCreateAPIView, RetrieveUpdateDestroyAPIView):
+class PostLikeViewSet(ModelViewSet):
     queryset = PostLike.objects.all()
     serializer_class = PostLikeSerializer
     lookup_field = 'pk'
+    http_method_names = ('get', 'post', 'get_id', 'delete')
 
 
 class StoryViewSet(ListCreateAPIView, DestroyAPIView):
@@ -28,9 +31,10 @@ class StoryViewSet(ListCreateAPIView, DestroyAPIView):
     lookup_field = 'pk'
 
 
-class StoryLikeViewSet(ListCreateAPIView, DestroyAPIView):
+class StoryLikeViewSet(ModelViewSet):
     queryset = StoryLike.objects.all()
     serializer_class = StoryLikeSerializer
+    http_method_names = ('get', 'get_id', 'post', 'delete')
     lookup_field = 'pk'
 
 

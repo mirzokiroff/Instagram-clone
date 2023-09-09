@@ -3,32 +3,25 @@ from conf import settings
 
 
 class Media(models.Model):
-    POST = 'post'
-    STORY = 'story'
-    TYPE_CHOICES = [
-        (POST, 'Post'),
-        (STORY, 'Story'),
-    ]
-
-    post = models.CharField(max_length=10, choices=TYPE_CHOICES)
-    story = models.TextField(blank=True)
-    uploaded_file = models.FileField(upload_to='media/', blank=True, null=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    post = models.URLField(blank=True)
+    story = models.URLField(blank=True)
 
     def __str__(self):
-        return f"{self.post}: {self.story}"
+        return self.post
 
 
 class Post(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     archived = models.ManyToManyField(settings.ARCHIVED_POSTS, blank=True)
-    tag = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="tags")
+    tag = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="tags", blank=True)
     date = models.DateTimeField(auto_now_add=True)
-    location = models.CharField(max_length=222)
+    location = models.CharField(max_length=222, blank=True)
     media = models.ManyToManyField(Media, related_name='posts')
-    text = models.TextField()
+    text = models.TextField(blank=True)
 
     # Accessibility info
-    alt_text = models.TextField()
+    alt_text = models.TextField(blank=True)
     image_description = models.TextField(blank=True)
     location_description = models.TextField(blank=True)
     audio_description = models.TextField(blank=True)
@@ -39,6 +32,7 @@ class Post(models.Model):
 
 class PostLike(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    post_owner = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='post_owner')
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
 
 
