@@ -10,25 +10,31 @@ from rest_framework.relations import SlugRelatedField
 
 class UserProfileSerializer(ModelSerializer):
     user = HiddenField(default=CurrentUserDefault())
-    date = DateTimeField(read_only=True)
+    date = DateTimeField(format='%d-%m-%Y', read_only=True)
+    last_login = DateTimeField(format='%d-%m-%Y', read_only=True)
+    following = IntegerField(source='following.count', read_only=True)
+    followers = IntegerField(source='followers.count', read_only=True)
 
     class Meta:
         model = UserProfile
-        exclude = ['is_superuser', 'first_name', 'last_name', 'is_staff', 'groups', 'user_permissions', 'last_login',
-                   'date_joined', 'followers', 'following']
+        # fields = ['fullname', 'username', 'email', 'following', 'followers', 'password', 'gender', 'bio',
+        #           'social_links', 'image', 'is_public', 'user'],
+        # fields = '__all__'
+        exclude = ['is_superuser', 'is_staff', 'groups', 'user_permissions', 'is_active', 'date_joined']
 
         def to_representation(self, instance):
             data = super().to_representation(instance)
-            data['followers'] = instance.followers_count
-            data['following'] = instance.following_count
+            # data['followers'] = instance.followers_count
+            # data['following'] = instance.following_count
             return data
 
 
-
 class UserViewProfileModelSerializer(ModelSerializer):
+    user = HiddenField(default=CurrentUserDefault())
+
     class Meta:
         model = UserProfile
-        fields = ('id', 'fullname', 'username', 'image')
+        fields = ('id', 'fullname', 'username', 'image', 'user')
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -40,12 +46,13 @@ class UserViewProfileModelSerializer(ModelSerializer):
 
 
 class UserFollowModelSerializer(ModelSerializer):
+    user = HiddenField(default=CurrentUserDefault())
     followers = UserViewProfileModelSerializer(many=True)
     following = UserViewProfileModelSerializer(many=True)
 
     class Meta:
         model = UserProfile
-        fields = ('following', 'followers')
+        fields = ('following', 'followers', 'user')
 
     def create(self, validated_data):
         return super().create(validated_data)
@@ -62,20 +69,24 @@ class UserFollowingModelSerializer(ModelSerializer):
     def create(self, validated_data):
         user: UserProfile = validated_data['user']
         follow_user = validated_data['username']
-        # if user.following.filter(id=follow_user.id).first():
-        #     user.following.remove(follow_user)
-        #     follow_user.followers.remove(user)
-        #     follow_user.save()
-        #     user.save()
-        # else:
-        user.following.add(follow_user)
-        user.save()
-        follow_user.followers.add(user)
-        follow_user.save()
-        return user
+        if user != follow_user:
+            if user.following.filter(id=follow_user.id).first():
+                user.following.remove(follow_user)
+                follow_user.followers.remove(user)
+                follow_user.save()
+                user.save()
+                return {'message': "you have successfully unsubscribed"}
+            else:
+                user.following.add(follow_user)
+                user.save()
+                follow_user.followers.add(user)
+                follow_user.save()
+                return {'message': "you have successfully subscribed"}
+        else:
+            return {'message': "you cannot subscribe to yourself"}
 
     def to_representation(self, instance):
-        return {'message': "you've followed successfully"}
+        return instance
 
 
 class UserSerializer(ModelSerializer):
@@ -98,4 +109,4 @@ class RegisterSerializer(ModelSerializer):
     class Meta:
         model = UserProfile
         exclude = ['is_superuser', 'first_name', 'last_name', 'is_staff', 'groups', 'user_permissions', 'last_login',
-                   'date_joined', 'followers', 'following']
+                   'date_joined', 'followers', 'following', 'is_active', 'gender', 'bio', 'social_links', 'is_public']

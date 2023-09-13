@@ -9,6 +9,8 @@ router.register('post', PostViewSet, basename='post'),
 router.register('post-like', PostLikeViewSet, basename='post_like'),
 router.register('story-like', StoryLikeViewSet, basename='story_like'),
 router.register('comment-like', CommentLikeViewSet, basename='comment_like'),
+router.register('reels', ReelsViewSet, basename='reels'),
+router.register('reels-like', ReelsViewSet, basename='reels_like'),
 
 urlpatterns = [
     path('', include(router.urls)),

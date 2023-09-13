@@ -1,8 +1,10 @@
 from django.http import Http404
+from django.views.generic import *
 from rest_framework.exceptions import NotAuthenticated, PermissionDenied
 from rest_framework.generics import ListCreateAPIView, ListAPIView, \
-    RetrieveUpdateDestroyAPIView, CreateAPIView
+    RetrieveUpdateDestroyAPIView, CreateAPIView, DestroyAPIView
 from rest_framework.parsers import MultiPartParser
+from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -15,6 +17,7 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login
 from apps.users.serializers import UserProfileSerializer
+from django.utils.text import slugify
 
 
 class AccountViewSet(ModelViewSet):
@@ -23,6 +26,16 @@ class AccountViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated, ]
     parser_classes = [MultiPartParser, ]
     # lookup_field = 'pk'
+    http_method_names = ('get', 'get_id', 'put', 'patch', 'delete')
+
+
+class Index(ListCreateAPIView):
+    renderer_classes = [TemplateHTMLRenderer]
+    template_name = 'home.html'
+
+    def get(self, request, *args, **kwargs):
+        queryset = UserProfile.objects.all()
+        return Response({'data': queryset})
 
 
 class UserDetailView(ModelViewSet):
@@ -46,7 +59,7 @@ class RegisterView(CreateAPIView):
 
 class LoginView(CreateAPIView):
     serializer_class = LoginSerializer
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
         username = request.data.get("username")
@@ -64,7 +77,7 @@ class FollowListCreateAPIVIew(ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        return self.request.user.following.all()
+        return self.request.user.following.filter()
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -78,7 +91,7 @@ class FollowListCreateAPIVIew(ListCreateAPIView):
         return Response(serializer.data)
 
 
-class UnFollowAPIView(generics.DestroyAPIView):
+class UnFollowAPIView(DestroyAPIView):
     queryset = UserProfile.objects.all()
     lookup_field = 'username'
     permission_classes = (IsAuthenticated,)
@@ -106,7 +119,9 @@ class FollowersListAPIVIew(ListAPIView):
 class FollowersListAPIViewByUsername(ListAPIView):
     queryset = UserProfile.objects.all()
     serializer_class = UserViewProfileModelSerializer
-    permission_classes = (IsPublicAccount,)
+    permission_classes = (IsPublicAccount, IsAuthenticated)
+
+    # http_method_names = ('get', '')
 
     def get_queryset(self):
         if username := self.kwargs.get('username'):
@@ -119,23 +134,24 @@ class FollowersListAPIViewByUsername(ListAPIView):
 
 class FollowingListAPIViewByUsername(FollowersListAPIViewByUsername):
     def get_queryset(self):
-        if username := self.kwargs.get('username'):
-            qs = self.queryset.filter(username=username)
-            if qs.exists():
-                user: UserProfile = qs.first()
-                return user.following.all()
+        user = self.request.user
+        if user.is_authenticated and user.username == self.kwargs['username']:
+            return user
+        user = UserProfile.objects.filter(username=slugify(self.kwargs['username']))
+        if user:
+            return user.all()
         raise Http404
 
 
 class ProfileRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     serializer_class = UserProfileSerializer
-    http_method_names = ('get', 'patch', 'delete')
+    http_method_names = ('get', 'delete')
 
     def get_object(self):
         user = self.request.user
         if user.is_authenticated and user.username == self.kwargs['username']:
             return user
-        user = UserProfile.objects.filter(username=self.kwargs['username'])
+        user = UserProfile.objects.filter(username=slugify(self.kwargs['username']))
         if user:
             return user.first()
         raise Http404

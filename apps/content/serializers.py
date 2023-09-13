@@ -1,7 +1,7 @@
 from collections import OrderedDict
 
 from rest_framework.exceptions import ValidationError
-from rest_framework.fields import SkipField, HiddenField, CurrentUserDefault
+from rest_framework.fields import SkipField, HiddenField, CurrentUserDefault, ListField
 from rest_framework.relations import PKOnlyObject
 from rest_framework.serializers import ModelSerializer
 from apps.content.models import *
@@ -16,11 +16,13 @@ class MediaSerializer(ModelSerializer):  # noqa
 
 
 class PostSerializer(ModelSerializer):
+    # id = CharField(read_only=True)
+    media = ListField(validators=(file_ext_validator,))
     user = HiddenField(default=CurrentUserDefault())
 
     class Meta:
         model = Post
-        fields = '__all__'
+        exclude = ['username']
         read_only_fields = ('created_at', 'updated_at', 'likes', 'comments', 'id')
 
         def create(self, validated_data):
@@ -54,11 +56,21 @@ class PostSerializer(ModelSerializer):
             return ret
 
 
-class PostLikeSerializer(ModelSerializer):
+class UpdatePostModelSerializer(ModelSerializer):
+    class Meta:
+        model = Post
+        fields = 'text', 'location'
+        read_only_fields = ('created_at', 'updated_at', 'likes', 'comments', 'id')
+
+        def to_representation(self, instance):
+            return PostSerializer(instance).data
+
+
+class ReelsSerializer(ModelSerializer):  # noqa
     user = HiddenField(default=CurrentUserDefault())
 
     class Meta:
-        model = PostLike
+        model = Reels
         fields = '__all__'
 
 
@@ -70,27 +82,11 @@ class StorySerializer(ModelSerializer):
         fields = '__all__'
 
 
-class StoryLikeSerializer(ModelSerializer):  # noqa
-    user = HiddenField(default=CurrentUserDefault())
-
-    class Meta:
-        model = StoryLike
-        fields = '__all__'
-
-
-class CommentSerializer(ModelSerializer):
+class CommentSerializer(ModelSerializer):  # noqa
     user = HiddenField(default=CurrentUserDefault())
 
     class Meta:
         model = Comment
-        fields = '__all__'
-
-
-class CommentLikeSerializer(ModelSerializer):
-    user = HiddenField(default=CurrentUserDefault())
-
-    class Meta:
-        model = CommentLike
         fields = '__all__'
 
 
@@ -99,4 +95,36 @@ class HighlightSerializer(ModelSerializer):
 
     class Meta:
         model = Highlight
+        fields = '__all__'
+
+
+class PostLikeSerializer(ModelSerializer):  # noqa
+    user = HiddenField(default=CurrentUserDefault())
+
+    class Meta:
+        model = PostLike
+        fields = '__all__'
+
+
+class StoryLikeSerializer(ModelSerializer):  # noqa
+    user = HiddenField(default=CurrentUserDefault())
+
+    class Meta:
+        model = StoryLike
+        fields = '__all__'
+
+
+class ReelsLikeSerializer(ModelSerializer):
+    user = HiddenField(default=CurrentUserDefault())
+
+    class Meta:
+        model = Reels
+        fields = '__all__'
+
+
+class CommentLikeSerializer(ModelSerializer):
+    user = HiddenField(default=CurrentUserDefault())
+
+    class Meta:
+        model = CommentLike
         fields = '__all__'
