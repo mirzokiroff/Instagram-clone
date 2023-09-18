@@ -14,6 +14,7 @@ class UserProfileSerializer(ModelSerializer):
     last_login = DateTimeField(format='%d-%m-%Y', read_only=True)
     following = IntegerField(source='following.count', read_only=True)
     followers = IntegerField(source='followers.count', read_only=True)
+    likes = IntegerField(source='likes.count', read_only=True)
 
     class Meta:
         model = UserProfile
@@ -89,6 +90,16 @@ class UserFollowingModelSerializer(ModelSerializer):
         return instance
 
 
+class FollowersSerializer(ModelSerializer):
+    user = HiddenField(default=CurrentUserDefault())
+    followers = serializers.SlugRelatedField(many=True, read_only=True, slug_field='username')
+    following = serializers.SlugRelatedField(many=True, read_only=True, slug_field='username')
+
+    class Meta:
+        model = UserProfile
+        fields = ('username', 'followers', 'following', 'user')
+
+
 class UserSerializer(ModelSerializer):
     user = HiddenField(default=CurrentUserDefault())
 
@@ -109,4 +120,5 @@ class RegisterSerializer(ModelSerializer):
     class Meta:
         model = UserProfile
         exclude = ['is_superuser', 'first_name', 'last_name', 'is_staff', 'groups', 'user_permissions', 'last_login',
-                   'date_joined', 'followers', 'following', 'is_active', 'gender', 'bio', 'social_links', 'is_public']
+                   'date_joined', 'followers', 'following', 'is_active', 'gender', 'bio', 'social_links', 'is_public',
+                   'likes']

@@ -17,9 +17,14 @@ class UserProfile(AbstractUser):
                        default='https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg')
     followers = ManyToManyField('self', 'my_followers', symmetrical=False)
     following = ManyToManyField('self', 'my_following', symmetrical=False)
+    likes = ManyToManyField('self', 'my_likes', symmetrical=False)
     # date = DateTimeField(auto_now_add=True)
     # last_login = DateTimeField(auto_now_add=True)
     is_public = BooleanField(default=True)
+
+    @property
+    def likes_count(self):
+        return self.likes.count()
 
     @property
     def following_count(self):

@@ -1,5 +1,4 @@
 from django.http import Http404
-from django.views.generic import *
 from rest_framework.exceptions import NotAuthenticated, PermissionDenied
 from rest_framework.generics import ListCreateAPIView, ListAPIView, \
     RetrieveUpdateDestroyAPIView, CreateAPIView, DestroyAPIView
@@ -27,15 +26,6 @@ class AccountViewSet(ModelViewSet):
     parser_classes = [MultiPartParser, ]
     # lookup_field = 'pk'
     http_method_names = ('get', 'get_id', 'put', 'patch', 'delete')
-
-
-class Index(ListCreateAPIView):
-    renderer_classes = [TemplateHTMLRenderer]
-    template_name = 'home.html'
-
-    def get(self, request, *args, **kwargs):
-        queryset = UserProfile.objects.all()
-        return Response({'data': queryset})
 
 
 class UserDetailView(ModelViewSet):
@@ -141,6 +131,17 @@ class FollowingListAPIViewByUsername(FollowersListAPIViewByUsername):
         if user:
             return user.all()
         raise Http404
+
+
+class FollowersView(generics.RetrieveAPIView):
+    serializer_class = FollowersSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        # Foydalanuvchi usernami orqali UserProfile obyektini olish
+        username = self.kwargs['username']
+        user_profile = UserProfile.objects.get(username=username)
+        return user_profile
 
 
 class ProfileRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):

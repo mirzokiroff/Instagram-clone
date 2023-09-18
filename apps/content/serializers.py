@@ -1,10 +1,10 @@
 from collections import OrderedDict
-
 from rest_framework.exceptions import ValidationError
-from rest_framework.fields import SkipField, HiddenField, CurrentUserDefault, ListField
-from rest_framework.relations import PKOnlyObject
+from rest_framework.fields import SkipField, HiddenField, CurrentUserDefault, CharField
+from rest_framework.relations import PKOnlyObject, PrimaryKeyRelatedField
 from rest_framework.serializers import ModelSerializer
-from apps.content.models import *
+from apps.content.models import Media, Post, PostLike, StoryLike, Story, Reels, Likes, CommentLike, Highlight, Comment
+from apps.users.models import UserProfile
 
 
 class MediaSerializer(ModelSerializer):  # noqa
@@ -17,7 +17,7 @@ class MediaSerializer(ModelSerializer):  # noqa
 
 class PostSerializer(ModelSerializer):
     # id = CharField(read_only=True)
-    media = ListField(validators=(file_ext_validator,))
+    # media = ListField(validators=(file_ext_validator,))
     user = HiddenField(default=CurrentUserDefault())
 
     class Meta:
@@ -62,8 +62,8 @@ class UpdatePostModelSerializer(ModelSerializer):
         fields = 'text', 'location'
         read_only_fields = ('created_at', 'updated_at', 'likes', 'comments', 'id')
 
-        def to_representation(self, instance):
-            return PostSerializer(instance).data
+    def to_representation(self, instance):
+        return PostSerializer(instance).data
 
 
 class ReelsSerializer(ModelSerializer):  # noqa
@@ -98,12 +98,38 @@ class HighlightSerializer(ModelSerializer):
         fields = '__all__'
 
 
+class LikesSerializer(ModelSerializer):
+    user = HiddenField(default=CurrentUserDefault())
+
+    class Meta:
+        model = Likes
+        fields = '__all__'
+
+
 class PostLikeSerializer(ModelSerializer):  # noqa
+    post = PrimaryKeyRelatedField(queryset=Post.objects.all())
     user = HiddenField(default=CurrentUserDefault())
 
     class Meta:
         model = PostLike
         fields = '__all__'
+
+    def create(self, validated_data):
+        user: UserProfile = validated_data['user']
+        # user.liked_post.count()
+        post = validated_data['post']
+        like = post.likes.filter(user=user).first()
+        if like:
+            like.delete()
+            return {'message': "You have unliked the post."}
+        else:
+            post_like = PostLike.objects.create(user=user, post=post)
+            post.likes.add(post_like)
+            post.save()
+            return {'message': "You have liked the post."}
+
+    def to_representation(self, instance):
+        return instance
 
 
 class StoryLikeSerializer(ModelSerializer):  # noqa
@@ -111,7 +137,29 @@ class StoryLikeSerializer(ModelSerializer):  # noqa
 
     class Meta:
         model = StoryLike
-        fields = '__all__'
+        exclude = ['story_like', ]
+
+    def create(self, validated_data):
+        user: UserProfile = validated_data['user']
+        story = validated_data['story']
+        if user != story:
+            if user.likes.filter(id=story.id).first():
+                story.likes.remove(story)
+                user.likes.remove(user)
+                story.save()
+                user.save()
+                return {'message': "You have unliked the story."}
+            else:
+                story.likes.add(story)
+                user.likes.add(user)
+                story.save()
+                user.save()
+                return {'message': "You have liked the story."}
+        else:
+            return {'message': "You can not like the story"}
+
+    def to_representation(self, instance):
+        return instance
 
 
 class ReelsLikeSerializer(ModelSerializer):

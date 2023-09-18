@@ -1,9 +1,9 @@
-from rest_framework.generics import *
+from rest_framework.generics import ListCreateAPIView, DestroyAPIView
 
-# Create your views here.
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import *
 from apps.content.serializers import *
+from apps.content.models import ReelsLike
 
 
 class MediaViewSet(ModelViewSet):
@@ -21,6 +21,7 @@ class PostViewSet(ModelViewSet):
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated]
     lookup_field = 'pk'
+    http_method_names = ('get', 'post', 'patch', 'delete')
 
 
 class ReelsViewSet(ModelViewSet):
@@ -50,14 +51,14 @@ class HighlightViewSet(ListCreateAPIView, DestroyAPIView):
 class PostLikeViewSet(ModelViewSet):
     queryset = PostLike.objects.all()
     serializer_class = PostLikeSerializer
-    lookup_field = 'pk'
-    http_method_names = ('get', 'post', 'get_id', 'delete')
+    permission_classes = [AllowAny]
+    http_method_names = ('get', 'post')
 
 
 class StoryLikeViewSet(ModelViewSet):
     queryset = StoryLike.objects.all()
     serializer_class = StoryLikeSerializer
-    http_method_names = ('get', 'get_id', 'post', 'delete')
+    http_method_names = ('get', 'post', 'delete')
     lookup_field = 'pk'
 
 
@@ -65,11 +66,11 @@ class CommentLikeViewSet(ModelViewSet):
     queryset = CommentLike.objects.all()
     serializer_class = CommentLikeSerializer
     lookup_field = 'pk'
-    http_method_names = ('get', 'get_id', 'post', 'delete')
+    http_method_names = ('get', 'post', 'delete')
 
 
 class ReelsLikeViewSet(ModelViewSet):
     queryset = ReelsLike
     serializer_class = ReelsLikeSerializer
     lookup_field = 'pk'
-    http_method_names = ('get', 'get_id', 'post', 'delete')
+    http_method_names = ('get', 'post', 'delete')
