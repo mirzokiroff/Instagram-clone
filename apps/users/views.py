@@ -3,18 +3,14 @@ from rest_framework.exceptions import NotAuthenticated, PermissionDenied
 from rest_framework.generics import ListCreateAPIView, ListAPIView, \
     RetrieveUpdateDestroyAPIView, CreateAPIView, DestroyAPIView
 from rest_framework.parsers import MultiPartParser
-from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from shared.permissions import IsPublicAccount
-
 from apps.users.serializers import *
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework import generics, status, permissions
+from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.authtoken.models import Token
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate
 from apps.users.serializers import UserProfileSerializer
 from django.utils.text import slugify
 
@@ -24,8 +20,7 @@ class AccountViewSet(ModelViewSet):
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated, ]
     parser_classes = [MultiPartParser, ]
-    # lookup_field = 'pk'
-    http_method_names = ('get', 'get_id', 'put', 'patch', 'delete')
+    http_method_names = ('get', 'get_id', 'patch')
 
 
 class UserDetailView(ModelViewSet):
@@ -33,7 +28,7 @@ class UserDetailView(ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
     lookup_field = 'pk'
-    http_method_names = ('get', 'delete', 'patch')
+    http_method_names = ('get', 'patch')
 
 
 class RegisterView(CreateAPIView):
@@ -57,7 +52,7 @@ class LoginView(CreateAPIView):
         user = authenticate(username=username, password=password)
         if user:
             refresh = RefreshToken.for_user(user)
-            return Response({"refresh": str(refresh), "access": str(refresh.access_token)})
+            return Response({"refresh": str(refresh), "access": str(refresh.access_token)}) # noqa
         else:
             return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -81,21 +76,21 @@ class FollowListCreateAPIVIew(ListCreateAPIView):
         return Response(serializer.data)
 
 
-class UnFollowAPIView(DestroyAPIView):
-    queryset = UserProfile.objects.all()
-    lookup_field = 'username'
-    permission_classes = (IsAuthenticated,)
-
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        user = request.user
-        if user.following.filter(id=instance.id).first():
-            user.following.remove(instance)
-            instance.followers.remove(user)
-            instance.save()
-            user.save()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        raise Http404
+# class UnFollowAPIView(DestroyAPIView):
+#     queryset = UserProfile.objects.all()
+#     lookup_field = 'username'
+#     permission_classes = (IsAuthenticated,)
+#
+#     def destroy(self, request, *args, **kwargs):
+#         instance = self.get_object()
+#         user = request.user
+#         if user.following.filter(id=instance.id).first():
+#             user.following.remove(instance)
+#             instance.followers.remove(user)
+#             instance.save()
+#             user.save()
+#             return Response(status=status.HTTP_204_NO_CONTENT)
+#         raise Http404
 
 
 class FollowersListAPIVIew(ListAPIView):
@@ -110,8 +105,6 @@ class FollowersListAPIViewByUsername(ListAPIView):
     queryset = UserProfile.objects.all()
     serializer_class = UserViewProfileModelSerializer
     permission_classes = (IsPublicAccount, IsAuthenticated)
-
-    # http_method_names = ('get', '')
 
     def get_queryset(self):
         if username := self.kwargs.get('username'):
@@ -138,7 +131,6 @@ class FollowersView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        # Foydalanuvchi usernami orqali UserProfile obyektini olish
         username = self.kwargs['username']
         user_profile = UserProfile.objects.get(username=username)
         return user_profile
@@ -146,7 +138,7 @@ class FollowersView(generics.RetrieveAPIView):
 
 class ProfileRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     serializer_class = UserProfileSerializer
-    http_method_names = ('get', 'delete')
+    http_method_names = ('get',)
 
     def get_object(self):
         user = self.request.user
@@ -176,8 +168,6 @@ class ProfileRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
             self.perform_update(serializer)
 
             if getattr(instance, '_prefetched_objects_cache', None):
-                # If 'prefetch_related' has been applied to a queryset, we need to
-                # forcibly invalidate the prefetch cache on the instance.
                 instance._prefetched_objects_cache = {}
 
             return Response(serializer.data)

@@ -11,6 +11,7 @@ class MediaViewSet(ModelViewSet):
     serializer_class = MediaSerializer
     permission_classes = [IsAuthenticated]
     lookup_field = 'pk'
+    http_method_names = ('get', 'post', 'delete')
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -27,50 +28,54 @@ class PostViewSet(ModelViewSet):
 class ReelsViewSet(ModelViewSet):
     queryset = Reels.objects.all()
     serializer_class = ReelsSerializer
+    permission_classes = [IsAuthenticated]
     lookup_field = 'pk'
+    http_method_names = ('get', 'post', 'patch', 'delete')
 
 
-class StoryViewSet(ListCreateAPIView, DestroyAPIView):
+class StoryViewSet(ModelViewSet):
     queryset = Story.objects.all()
     serializer_class = StorySerializer
+    permission_classes = [IsAuthenticated]
     lookup_field = 'pk'
+    http_method_names = ('get', 'post', 'delete')
 
 
-class CommentViewSet(ListCreateAPIView, DestroyAPIView):
+class CommentViewSet(ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    lookup_field = 'pk'
+    permission_classes = [IsAuthenticated]
+    http_method_names = ('get', 'post', 'delete')
 
 
-class HighlightViewSet(ListCreateAPIView, DestroyAPIView):
+class HighlightViewSet(ModelViewSet):
     queryset = Highlight.objects.all()
     serializer_class = HighlightSerializer
+    permission_classes = [IsAuthenticated]
     lookup_field = 'pk'
+    http_method_names = ('get', 'post', 'patch', 'delete')
 
 
 class PostLikeViewSet(ModelViewSet):
     queryset = PostLike.objects.all()
     serializer_class = PostLikeSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     http_method_names = ('get', 'post')
 
 
-class StoryLikeViewSet(ModelViewSet):
+class StoryLikeViewSet(ListCreateAPIView):
     queryset = StoryLike.objects.all()
     serializer_class = StoryLikeSerializer
-    http_method_names = ('get', 'post', 'delete')
-    lookup_field = 'pk'
+    permission_classes = [IsAuthenticated]
 
 
-class CommentLikeViewSet(ModelViewSet):
+class CommentLikeViewSet(ListCreateAPIView):
     queryset = CommentLike.objects.all()
     serializer_class = CommentLikeSerializer
-    lookup_field = 'pk'
-    http_method_names = ('get', 'post', 'delete')
+    permission_classes = [IsAuthenticated]
 
 
-class ReelsLikeViewSet(ModelViewSet):
-    queryset = ReelsLike
+class ReelsLikeViewSet(ListCreateAPIView):
+    queryset = ReelsLike.objects.all()
     serializer_class = ReelsLikeSerializer
-    lookup_field = 'pk'
-    http_method_names = ('get', 'post', 'delete')
+    permission_classes = [IsAuthenticated]

@@ -1,23 +1,23 @@
 from django.core.exceptions import ValidationError
 from django.db.models import Model, ForeignKey, ManyToManyField, DateTimeField, CharField, TextField, \
-    URLField
+    URLField, BooleanField
 from django.db.models import CASCADE
-# from django.core.validators import FileExtensionValidator
 from conf import settings
-from shared.models import BaseModel, unique_id, CustomFileExtensionValidator
+from shared.models import BaseModel, unique_id
 
 
 # file_ext_validator = CustomFileExtensionValidator(('mp4', 'mkv', 'avi', 'webm', '3gp', 'jpg', 'jpeg', 'png', 'webp'))
 
 
-class Media(Model):
-    user = ForeignKey('users.UserProfile', on_delete=CASCADE)
+class Media(BaseModel):
+    user = ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE, related_name='media_user')
     # file = FileField(upload_to='posts/', validators=(file_ext_validator,))
     file = URLField(blank=True, default='https://www.instagram.com')
+    date = DateTimeField(auto_now_add=True)
 
 
 class Post(BaseModel):
-    id = CharField(primary_key=True, unique=True, max_length=36)
+    id = CharField(primary_key=True, unique=True, max_length=36, default=unique_id)
     username = ManyToManyField(settings.AUTH_USER_MODEL, related_name='post_username')
     user = ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE)
     archived = ManyToManyField(settings.ARCHIVED_POSTS, blank=True)
@@ -38,102 +38,117 @@ class Post(BaseModel):
 
     @property
     def get_number_of_likes(self):
-        return self.likes.count()
+        return self.post_likes.count()
 
     @property
     def get_number_of_comments(self):
-        return self.comments.count()
+        return self.post_comments.count()
 
 
 class Reels(BaseModel):
-    id = CharField(primary_key=True, default=unique_id, max_length=36)
+    id = CharField(primary_key=True, unique=True, max_length=36, default=unique_id)
+    user = ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE, related_name='reels_user')
     caption = TextField(null=True, blank=True)
-    # username = ForeignKey('users.UserProfile', on_delete=CASCADE)
-    user = ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE)
     reels = ManyToManyField(Media, related_name='reels')
-    location = CharField(max_length=222, null=True, blank=True)
 
     @property
     def get_number_of_likes(self):
-        return self.likes.count()
+        return self.reels_likes.count()
 
     @property
     def get_number_of_comments(self):
-        return self.comments.count()
+        return self.reels_comments.count()
 
 
-class Comment(Model):
+class Comment(BaseModel):
+    id = CharField(primary_key=True, unique=True, max_length=36, default=unique_id)
     parent = ForeignKey('self', CASCADE, null=True, related_name='reply_comments')
-    user = ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE)
-    post = ForeignKey(Post, on_delete=CASCADE, related_name='comments', null=True)
-    reels = ForeignKey(Reels, on_delete=CASCADE, related_name='comments', null=True)
-    comment = TextField(max_length=400)
-    posted = DateTimeField(auto_now_add=True)
+    user = ForeignKey(settings.AUTH_USER_MODEL, CASCADE, related_name='comment_user')
+    comments = TextField(max_length=333)
+    date = DateTimeField(auto_now_add=True)
+    post = ForeignKey('content.Post', on_delete=CASCADE, related_name='post_comments', null=True, blank=True)
+    reels = ForeignKey('content.Reels', on_delete=CASCADE, related_name='reels_comments', null=True, blank=True)
 
     def __str__(self):
-        return self.comment
+        return self.comments
+
+    @property
+    def get_number_of_likes(self):
+        return self.comment_likes
+
+    @property
+    def get_number_of_reply_comment(self):
+        return self.parent
 
     class Meta:
         unique_together = ('post', 'reels')
 
-    def save(
-            self, force_insert=False, force_update=False, using=None, update_fields=None
-    ):
-        if not (self.post and self.reels):
-            raise ValidationError('You must specify one of the following fields to save comments, fields: "post, reel"')
-        super().save(force_insert, force_update, using, update_fields)
 
-
-class Story(Model):
-    user = ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE)
-    story_media = ManyToManyField(Media, related_name='stories')
-    mention = ManyToManyField(settings.AUTH_USER_MODEL, related_name="mentioned_users", blank=True)
+class Story(BaseModel):
+    id = CharField(primary_key=True, unique=True, max_length=36, default=unique_id)
+    user = ForeignKey(settings.AUTH_USER_MODEL, CASCADE, related_name='story_user')
+    story = ManyToManyField(Media, related_name='stories')
+    mention = ForeignKey('users.UserProfile', CASCADE, related_name="mentioned_users", null=True, blank=True)
+    # viewer = ForeignKey('users.UserProfile', CASCADE, related_name='story_viewers')
     date = DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.story_media
+        return self.story
 
+    @property
+    def get_number_of_viewers(self):
+        return self.story_view.count()
+
+    @property
     def get_number_of_likes(self):
-        return self.story_media.count()
+        return self.story_likes.count()
 
 
-class Highlight(Model):
-    user = ManyToManyField(Post, related_name='highlight_user')
+class Highlight(BaseModel):
+    id = CharField(primary_key=True, unique=True, max_length=36, default=unique_id)
+    user = ForeignKey(settings.AUTH_USER_MODEL, CASCADE, related_name='highlight_user')
+    name = CharField(max_length=77)
     date = DateTimeField(auto_now_add=True)
-    highlight = ForeignKey(Story, on_delete=CASCADE)
+    highlight = ForeignKey(Story, on_delete=CASCADE, related_name='highlight')
 
     def __str__(self):
         return self.user
 
 
-class Likes(Model):
-    username = ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE, related_name='username_likes')
-    post_like = ForeignKey(Post, on_delete=CASCADE, related_name='post_likes', null=True, blank=True)
-    reels_like = ForeignKey(Reels, on_delete=CASCADE, related_name='reel_likes', null=True, blank=True)
-    story_like = ForeignKey(Story, on_delete=CASCADE, related_name='story_likes', null=True, blank=True)
-    comment_like = ForeignKey(Comment, on_delete=CASCADE, related_name='comment_likes', null=True, blank=True)
+class Viewers(BaseModel):
+    post = ForeignKey(Post, CASCADE, related_name='post_view')
+    reel = ForeignKey(Reels, CASCADE, related_name='reel_view')
+    story = ForeignKey(Story, CASCADE, related_name='story_view')
+
+
+class PostLike(BaseModel):
+    user = ForeignKey('users.UserProfile', CASCADE, related_name='post_like_user')
+    post = ForeignKey('content.Post', CASCADE, related_name='post_likes')
 
     def __str__(self):
-        return self.username
+        return 'Like: ' + self.user.username
 
 
-class PostLike(Model):
-    user = ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE, related_name='liked_post')
-    post = ForeignKey(Post, on_delete=CASCADE, unique=True, related_name='likes')
+class StoryLike(BaseModel):
+    user = ForeignKey('users.UserProfile', CASCADE, related_name='story_like_user')
+    story = ForeignKey('content.Story', CASCADE, related_name='story_likes')
+    shared_to = ForeignKey('users.UserProfile', CASCADE, related_name='shared_stories', null=True, blank=True)
+
+    def __str__(self):
+        return 'Like: ' + self.user.username
 
 
-class StoryLike(Model):
-    user = ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE, related_name='liked_story')
-    story = ForeignKey(Story, on_delete=CASCADE, related_name='like_story')
-    story_like = ForeignKey(Likes, on_delete=CASCADE, related_name='story_likes')
-    shared_to = ManyToManyField(settings.AUTH_USER_MODEL, related_name='shared_stories', blank=True)
+class CommentLike(BaseModel):
+    user = ForeignKey('users.UserProfile', CASCADE, related_name='comment_liked_user')
+    comment = ForeignKey('content.Comment', CASCADE, related_name='comment_likes')
+
+    def __str__(self):
+        return 'Like: ' + self.user.username
 
 
-class CommentLike(Model):
-    user = ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE, related_name='liked_comments')
-    comment = ForeignKey(Comment, on_delete=CASCADE)
+class ReelsLike(BaseModel):
+    user = ForeignKey('users.UserProfile', CASCADE, related_name='reels_like_user')
+    reels = ForeignKey('content.Reels', CASCADE, related_name='reels_likes')
 
-
-class ReelsLike(Model):
-    reels = ForeignKey('content.Reels', on_delete=CASCADE, related_name='likes')
-    user = ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE, related_name='liked_reels')
+    def __str__(self):
+        return 'Like: ' + self.user.username

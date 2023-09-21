@@ -18,13 +18,10 @@ class UserProfileSerializer(ModelSerializer):
 
     class Meta:
         model = UserProfile
-        # fields = ['fullname', 'username', 'email', 'following', 'followers', 'password', 'gender', 'bio',
-        #           'social_links', 'image', 'is_public', 'user'],
-        # fields = '__all__'
         exclude = ['is_superuser', 'is_staff', 'groups', 'user_permissions', 'is_active', 'date_joined']
 
         def to_representation(self, instance):
-            data = super().to_representation(instance)
+            data = super().to_representation(instance)  # noqa
             # data['followers'] = instance.followers_count
             # data['following'] = instance.following_count
             return data
@@ -35,13 +32,13 @@ class UserViewProfileModelSerializer(ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ('id', 'fullname', 'username', 'image', 'user')
+        fields = ('fullname', 'username', 'image', 'user')
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
         request = self.context['request']
         data['is_followed'] = False
-        if request and (user := getattr(request, 'user')) and user.is_authenticated:
+        if request and (user := getattr(request, 'user')) and user.is_authenticated:  # noqa
             data['is_followed'] = user.following.filter(id=instance.id).exists()
         return data
 
@@ -105,7 +102,7 @@ class UserSerializer(ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ['id', 'username', 'email', 'password', 'user']
+        fields = ['username', 'email', 'password', 'user']
 
 
 class LoginSerializer(ModelSerializer):
@@ -119,6 +116,4 @@ class LoginSerializer(ModelSerializer):
 class RegisterSerializer(ModelSerializer):
     class Meta:
         model = UserProfile
-        exclude = ['is_superuser', 'first_name', 'last_name', 'is_staff', 'groups', 'user_permissions', 'last_login',
-                   'date_joined', 'followers', 'following', 'is_active', 'gender', 'bio', 'social_links', 'is_public',
-                   'likes']
+        fields = ('username', 'first_name', 'email', 'password')

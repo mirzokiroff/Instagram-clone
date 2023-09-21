@@ -9,13 +9,14 @@ router.register('media', MediaViewSet, basename='medias'),
 router.register('post', PostViewSet, basename='posts'),
 router.register('reel', ReelsViewSet, basename='reels'),
 router.register('post-like', PostLikeViewSet, basename='post_likes'),
-router.register('story-like', StoryLikeViewSet, basename='story_likes'),
-router.register('comment-like', CommentLikeViewSet, basename='comment_likes'),
-router.register('reels-like', ReelsLikeViewSet, basename='reels_likes'),
+router.register('story', StoryViewSet, basename='story'),
+router.register('highlight', HighlightViewSet, basename='highlight'),
+router.register('comment', CommentViewSet, basename='comment'),
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('story/', StoryViewSet.as_view(), name='stories'),
-    path('comment/', CommentViewSet.as_view(), name='comment'),
-    path('highlight/', HighlightViewSet.as_view(), name='highlight'),
+    path('story-like/', StoryLikeViewSet.as_view(), name='story_like'),
+    path('reels-like/', ReelsLikeViewSet.as_view(), name='reels_like'),
+    path('comment-like/', CommentLikeViewSet.as_view(), name='comment_like'),
+    # path('save/', SaveViewSet.as_view(), name='save')
 ]

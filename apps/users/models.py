@@ -1,4 +1,4 @@
-from django.db.models import Model, CharField, TextField, URLField, ManyToManyField, ImageField, DateTimeField, \
+from django.db.models import Model, CharField, TextField, URLField, ManyToManyField, ImageField, \
     BooleanField
 from django.contrib.auth.models import AbstractUser
 
@@ -7,7 +7,6 @@ from django.contrib.auth.models import AbstractUser
 
 
 class UserProfile(AbstractUser):
-    # user = OneToOneField(settings.AUTH_USER_MODEL, on_delete=CASCADE)
     fullname = CharField(max_length=111, default='string', blank=True)
     password = CharField(max_length=255, null=True, blank=True)
     gender = CharField(max_length=7, default='None', choices=[('male', 'Male'), ('female', 'Female')])
@@ -18,8 +17,6 @@ class UserProfile(AbstractUser):
     followers = ManyToManyField('self', 'my_followers', symmetrical=False)
     following = ManyToManyField('self', 'my_following', symmetrical=False)
     likes = ManyToManyField('self', 'my_likes', symmetrical=False)
-    # date = DateTimeField(auto_now_add=True)
-    # last_login = DateTimeField(auto_now_add=True)
     is_public = BooleanField(default=True)
 
     @property
