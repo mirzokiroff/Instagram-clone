@@ -1,17 +1,16 @@
 from django.http import Http404
 from rest_framework.exceptions import NotAuthenticated, PermissionDenied
 from rest_framework.generics import ListCreateAPIView, ListAPIView, \
-    RetrieveUpdateDestroyAPIView, CreateAPIView, DestroyAPIView
+    RetrieveUpdateDestroyAPIView, CreateAPIView
 from rest_framework.parsers import MultiPartParser
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 from shared.permissions import IsPublicAccount
-from apps.users.serializers import *
+from users.serializers import *
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import generics, status
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
-from apps.users.serializers import UserProfileSerializer
 from django.utils.text import slugify
 
 
@@ -52,7 +51,7 @@ class LoginView(CreateAPIView):
         user = authenticate(username=username, password=password)
         if user:
             refresh = RefreshToken.for_user(user)
-            return Response({"refresh": str(refresh), "access": str(refresh.access_token)}) # noqa
+            return Response({"refresh": str(refresh), "access": str(refresh.access_token)})  # noqa
         else:
             return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -74,23 +73,6 @@ class FollowListCreateAPIVIew(ListCreateAPIView):
 
         serializer = UserViewProfileModelSerializer(queryset, many=True, context={'request': self.request})
         return Response(serializer.data)
-
-
-# class UnFollowAPIView(DestroyAPIView):
-#     queryset = UserProfile.objects.all()
-#     lookup_field = 'username'
-#     permission_classes = (IsAuthenticated,)
-#
-#     def destroy(self, request, *args, **kwargs):
-#         instance = self.get_object()
-#         user = request.user
-#         if user.following.filter(id=instance.id).first():
-#             user.following.remove(instance)
-#             instance.followers.remove(user)
-#             instance.save()
-#             user.save()
-#             return Response(status=status.HTTP_204_NO_CONTENT)
-#         raise Http404
 
 
 class FollowersListAPIVIew(ListAPIView):
@@ -172,3 +154,26 @@ class ProfileRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
 
             return Response(serializer.data)
         raise NotAuthenticated()
+
+
+# class SignInWithOauth2APIView(APIView):
+#     def post(self, request, *args, **kwargs):
+#         serializer = SignInWithOauth2Serializer(data=request.data)
+#         data = request.data
+#         if serializer.is_valid():
+#             user = serializer.validated_data
+#             if token := data.get('token'):
+#                 return Response(oauth2_sign_in(token))
+#             return Response({'message': 'You have successfully signed in', 'user_id': user.id})
+#         raise ValidationError('token is missing or invalid')
+
+
+# class SignInWithOauth2APIView(APIView):
+#     def post(self, request, *args, **kwargs):
+#         serializer = SignInWithOauth2Serializer(data=request.data)
+#         if serializer.is_valid():
+#             user = serializer.validated_data
+#             # Token noto'g'ri bo'lgan yoki foydalanuvchi avtorizatsiya qilgan
+#             # Undan keyin kerakli ishlarni bajarishingiz mumkin
+#             return Response({'message': 'You have successfully signed in', 'user_id': user.id})
+#         raise ValidationError('token is missing or invalid')

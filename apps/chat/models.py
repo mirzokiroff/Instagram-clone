@@ -11,4 +11,4 @@ class Message(models.Model):
     from_whom = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="message_from_whom")
     date = models.DateTimeField(auto_now_add=True)
     liked = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='message_like')
-    media = models.ForeignKey(settings.MEDIA, on_delete=models.SET_NULL, null=True, blank=True)
+    # media = models.ForeignKey(settings.MEDIA, on_delete=models.SET_NULL, null=True, blank=True)

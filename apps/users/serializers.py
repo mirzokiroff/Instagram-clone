@@ -1,11 +1,7 @@
-from rest_framework.serializers import ModelSerializer
-from rest_framework import serializers
-from apps.users.models import UserProfile
+from rest_framework.serializers import ModelSerializer, CharField
+from users.models import UserProfile
 from rest_framework.fields import IntegerField, DateTimeField, HiddenField, CurrentUserDefault
 from rest_framework.relations import SlugRelatedField
-
-
-# from apps.content.serializers import *
 
 
 class UserProfileSerializer(ModelSerializer):
@@ -89,8 +85,8 @@ class UserFollowingModelSerializer(ModelSerializer):
 
 class FollowersSerializer(ModelSerializer):
     user = HiddenField(default=CurrentUserDefault())
-    followers = serializers.SlugRelatedField(many=True, read_only=True, slug_field='username')
-    following = serializers.SlugRelatedField(many=True, read_only=True, slug_field='username')
+    followers = SlugRelatedField(many=True, read_only=True, slug_field='username')
+    following = SlugRelatedField(many=True, read_only=True, slug_field='username')
 
     class Meta:
         model = UserProfile
@@ -109,11 +105,24 @@ class LoginSerializer(ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ['username', 'password']
-        username = serializers.CharField(max_length=111)
-        password = serializers.CharField(write_only=True)
+        username = CharField(max_length=111)
+        password = CharField(write_only=True)
 
 
 class RegisterSerializer(ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ('username', 'first_name', 'email', 'password')
+
+
+# class SignInWithOauth2Serializer(Serializer):
+#     token = CharField(required=True)
+#
+#     def validate_token(self, token):
+#         # Tokenni tekshirish va foydalanuvchi avtorizatsiya qilish
+#         user = oauth2_sign_in(token)
+#
+#         if user is None:
+#             raise ValidationError('Invalid token')
+#
+#         return user

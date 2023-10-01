@@ -1,6 +1,5 @@
-from django.core.exceptions import ValidationError
 from django.db.models import Model, ForeignKey, ManyToManyField, DateTimeField, CharField, TextField, \
-    URLField, BooleanField
+    URLField
 from django.db.models import CASCADE
 from conf import settings
 from shared.models import BaseModel, unique_id
@@ -20,7 +19,7 @@ class Post(BaseModel):
     id = CharField(primary_key=True, unique=True, max_length=36, default=unique_id)
     username = ManyToManyField(settings.AUTH_USER_MODEL, related_name='post_username')
     user = ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE)
-    archived = ManyToManyField(settings.ARCHIVED_POSTS, blank=True)
+    # archived = ManyToManyField(settings.ARCHIVED_POSTS, blank=True)
     tag = ManyToManyField(settings.AUTH_USER_MODEL, related_name="tags", blank=True)
     date = DateTimeField(auto_now_add=True)
     location = CharField(max_length=222, blank=True)

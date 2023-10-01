@@ -1,15 +1,12 @@
 from collections import OrderedDict
 
-from rest_framework import status
-from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SkipField, HiddenField, CurrentUserDefault, ListField, CharField
 from rest_framework.relations import PKOnlyObject, PrimaryKeyRelatedField
-from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer
-from apps.content.models import Media, Post, PostLike, StoryLike, Story, Reels, CommentLike, Highlight, Comment, \
+from content.models import Media, Post, PostLike, StoryLike, Story, Reels, CommentLike, Highlight, Comment, \
     ReelsLike
-from apps.users.models import UserProfile
+from users.models import UserProfile
 
 
 class MediaSerializer(ModelSerializer):

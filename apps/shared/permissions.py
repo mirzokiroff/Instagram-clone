@@ -1,6 +1,6 @@
 from rest_framework.permissions import BasePermission
 
-from apps.users.models import UserProfile
+from users.models import UserProfile
 
 
 class IsPublicAccount(BasePermission):

@@ -1,9 +1,11 @@
-from rest_framework.generics import ListCreateAPIView, DestroyAPIView
+from rest_framework.generics import ListCreateAPIView
 
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import *
-from apps.content.serializers import *
-from apps.content.models import ReelsLike
+from rest_framework.permissions import IsAuthenticated
+from content.serializers import MediaSerializer, PostSerializer, StorySerializer, StoryLikeSerializer, \
+    CommentSerializer, HighlightSerializer, ReelsSerializer, PostLikeSerializer, ReelsLikeSerializer, \
+    CommentLikeSerializer
+from content.models import ReelsLike, Media, Post, Reels, Story, StoryLike, PostLike, Highlight, Comment, CommentLike
 
 
 class MediaViewSet(ModelViewSet):
