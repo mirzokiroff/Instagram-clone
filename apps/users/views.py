@@ -1,14 +1,16 @@
 from django.http import Http404
-from rest_framework.exceptions import NotAuthenticated, PermissionDenied
+from rest_framework.exceptions import NotAuthenticated, PermissionDenied, ValidationError
 from rest_framework.generics import ListCreateAPIView, ListAPIView, \
-    RetrieveUpdateDestroyAPIView, CreateAPIView
+    RetrieveUpdateDestroyAPIView, CreateAPIView, RetrieveAPIView
 from rest_framework.parsers import MultiPartParser
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
-from shared.permissions import IsPublicAccount
-from users.serializers import *
+from .oauth2 import oauth2_sign_in
+from .serializers import UserProfileSerializer, UserSerializer, RegisterSerializer, LoginSerializer, \
+    UserFollowingModelSerializer, UserViewProfileModelSerializer, FollowersSerializer, SignInWithOauth2Serializer
+from .models import UserProfile
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework import generics, status
+from rest_framework import status
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from django.utils.text import slugify
@@ -30,35 +32,9 @@ class UserDetailView(ModelViewSet):
     http_method_names = ('get', 'patch')
 
 
-class RegisterView(CreateAPIView):
-    queryset = UserProfile.objects.all()
-    serializer_class = RegisterSerializer
-    permission_classes = [AllowAny]
-
-    def perform_create(self, serializer):
-        instance = serializer.save()
-        instance.set_password(instance.password)
-        instance.save()
-
-
-class LoginView(CreateAPIView):
-    serializer_class = LoginSerializer
-    permission_classes = [AllowAny]
-
-    def create(self, request, *args, **kwargs):
-        username = request.data.get("username")
-        password = request.data.get("password")
-        user = authenticate(username=username, password=password)
-        if user:
-            refresh = RefreshToken.for_user(user)
-            return Response({"refresh": str(refresh), "access": str(refresh.access_token)})  # noqa
-        else:
-            return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
-
-
 class FollowListCreateAPIVIew(ListCreateAPIView):
     serializer_class = UserFollowingModelSerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return self.request.user.following.filter()
@@ -83,32 +59,7 @@ class FollowersListAPIVIew(ListAPIView):
         return self.request.user.followers.all()
 
 
-class FollowersListAPIViewByUsername(ListAPIView):
-    queryset = UserProfile.objects.all()
-    serializer_class = UserViewProfileModelSerializer
-    permission_classes = (IsPublicAccount, IsAuthenticated)
-
-    def get_queryset(self):
-        if username := self.kwargs.get('username'):
-            qs = super().get_queryset().filter(username=username)
-            if qs.exists():
-                user: UserProfile = qs.first()
-                return user.followers.all()
-        raise Http404
-
-
-class FollowingListAPIViewByUsername(FollowersListAPIViewByUsername):
-    def get_queryset(self):
-        user = self.request.user
-        if user.is_authenticated and user.username == self.kwargs['username']:
-            return user
-        user = UserProfile.objects.filter(username=slugify(self.kwargs['username']))
-        if user:
-            return user.all()
-        raise Http404
-
-
-class FollowersView(generics.RetrieveAPIView):
+class FollowersView(RetrieveAPIView):
     serializer_class = FollowersSerializer
     permission_classes = [IsAuthenticated]
 
@@ -156,24 +107,43 @@ class ProfileRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
         raise NotAuthenticated()
 
 
-# class SignInWithOauth2APIView(APIView):
-#     def post(self, request, *args, **kwargs):
-#         serializer = SignInWithOauth2Serializer(data=request.data)
-#         data = request.data
-#         if serializer.is_valid():
-#             user = serializer.validated_data
-#             if token := data.get('token'):
-#                 return Response(oauth2_sign_in(token))
-#             return Response({'message': 'You have successfully signed in', 'user_id': user.id})
-#         raise ValidationError('token is missing or invalid')
+class RegisterView(CreateAPIView):
+    queryset = UserProfile.objects.all()
+    serializer_class = RegisterSerializer
+    permission_classes = [AllowAny]
+
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        instance.set_password(instance.password)
+        instance.save()
 
 
-# class SignInWithOauth2APIView(APIView):
-#     def post(self, request, *args, **kwargs):
-#         serializer = SignInWithOauth2Serializer(data=request.data)
-#         if serializer.is_valid():
-#             user = serializer.validated_data
-#             # Token noto'g'ri bo'lgan yoki foydalanuvchi avtorizatsiya qilgan
-#             # Undan keyin kerakli ishlarni bajarishingiz mumkin
-#             return Response({'message': 'You have successfully signed in', 'user_id': user.id})
-#         raise ValidationError('token is missing or invalid')
+class LoginView(CreateAPIView):
+    serializer_class = LoginSerializer
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        username = request.data.get("username")
+        password = request.data.get("password")
+        user = authenticate(username=username, password=password)
+        if user:
+            refresh = RefreshToken.for_user(user)
+            return Response({"refresh": str(refresh), "access": str(refresh.access_token)})  # noqa
+        else:
+            return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class SignInWithOauth2APIView(CreateAPIView):
+    serializer_class = SignInWithOauth2Serializer
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        serializer = SignInWithOauth2Serializer(data=request.data)
+        data = request.data
+
+        if serializer.is_valid():
+            user = serializer.validated_data
+            if token := data.get('token'):
+                return Response(oauth2_sign_in(token))
+            return Response({'message': 'You have successfully signed in', 'user_id': user.token})
+        raise ValidationError('token is missing or invalid')

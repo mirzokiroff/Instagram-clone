@@ -61,12 +61,12 @@ MIDDLEWARE = [
 # LOGIN_REDIRECT_URL = '/'
 # LOGOUT_URL = 'logout'
 # LOGOUT_REDIRECT_URL = 'login'
-# SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
-# SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET')
-
-ROOT_URLCONF = 'conf.urls'
+# SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '198670701713-va7al1h0qngvhprn4nqu0ib7v5teju5u.apps.googleusercontent.com'
+# SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
 
 AUTH_USER_MODEL = 'users.UserProfile'
+
+ROOT_URLCONF = 'conf.urls'
 
 TEMPLATES = [
     {
@@ -132,6 +132,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
+# ACC = 'users.UserProfile'
+# MEDIA = 'content.Media'
 
 # MEDIA_URL = 'media/'
 # MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -207,6 +209,6 @@ SIMPLE_JWT = {
 #     DEFAULT_FILE_STORAGE = 'shared.storage_backends.PublicMediaStorage'
 # else:
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR / 'static/')
 MEDIA_URL = 'media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = os.path.join(BASE_DIR / 'media/')
