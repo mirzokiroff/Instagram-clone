@@ -5,28 +5,19 @@ from rest_framework.fields import SkipField, HiddenField, CurrentUserDefault, Li
 from rest_framework.relations import PKOnlyObject, PrimaryKeyRelatedField
 from rest_framework.serializers import ModelSerializer
 from content.models import Media, Post, PostLike, StoryLike, Story, Reels, CommentLike, Highlight, Comment, \
-    ReelsLike
+    ReelsLike, file_ext_validator
 from users.models import UserProfile
-
-
-class MediaSerializer(ModelSerializer):
-    user = HiddenField(default=CurrentUserDefault())
-
-    class Meta:
-        model = Media
-        fields = '__all__'
-        read_only_fields = ('created_at', 'updated_at',)
 
 
 class PostSerializer(ModelSerializer):
     id = CharField(read_only=True)
-    media = ListField()
+    media = ListField(validators=(file_ext_validator,))
     user = HiddenField(default=CurrentUserDefault())
 
     class Meta:
         model = Post
-        exclude = ['username']
-        read_only_fields = ('created_at', 'updated_at', 'likes', 'comments', 'id')
+        fields = '__all__'
+        read_only_fields = ('created_at', 'updated_at', 'likes', 'comments', 'id', 'user')
 
     def create(self, validated_data):
         medias = validated_data.pop('media', [])
@@ -34,7 +25,7 @@ class PostSerializer(ModelSerializer):
         if len(medias) > 10:
             raise ValidationError('media files must be less than 10')
         for media in medias:
-            file = Media.objects.create(file=media, user=validated_data['user'])
+            file = Media.objects.create(file=media)
             media_ids.append(file.id)
         validated_data['media'] = media_ids
         return super().create(validated_data)
@@ -53,28 +44,42 @@ class PostSerializer(ModelSerializer):
             if check_for_none is None:
                 ret[field.field_name] = None
             elif hasattr(attribute, 'all'):
-                ret[field.field_name] = [field.file for field in attribute.all()]
+                ret[field.field_name] = [field.file.url for field in attribute.all()]
             else:
                 ret[field.field_name] = field.to_representation(attribute)
         return ret
 
 
+class UpdatePostSerializer(ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ['location']
+        read_only_fields = ('created_at', 'updated_at', 'likes', 'comments', 'id')
+
+    def to_representation(self, instance):
+        return PostSerializer(instance).data
+
+
 class ReelsSerializer(ModelSerializer):
+    id = CharField(read_only=True)
     user = HiddenField(default=CurrentUserDefault())
+
+    # reels = ListField(validators=(file_ext_validator,))
 
     class Meta:
         model = Reels
         fields = '__all__'
-        read_only_fields = ('id', 'created_at', 'updated_at',)
+        read_only_fields = ('created_at', 'updated_at', 'likes', 'comments', 'id', 'user')
 
 
 class StorySerializer(ModelSerializer):
+    id = CharField(read_only=True)
     user = HiddenField(default=CurrentUserDefault())
 
     class Meta:
         model = Story
         fields = '__all__'
-        read_only_fields = ('id', 'viewers', 'created_at', 'updated_at',)
+        read_only_fields = ('id', 'viewers', 'created_at', 'updated_at', 'user')
 
 
 class CommentSerializer(ModelSerializer):
