@@ -5,7 +5,7 @@ from rest_framework.fields import SkipField, HiddenField, CurrentUserDefault, Li
 from rest_framework.relations import PKOnlyObject, PrimaryKeyRelatedField
 from rest_framework.serializers import ModelSerializer
 from content.models import Media, Post, PostLike, StoryLike, Story, Reels, CommentLike, Highlight, Comment, \
-    ReelsLike, file_ext_validator
+    ReelsLike, file_ext_validator, HighlightLike
 from users.models import UserProfile
 
 
@@ -17,7 +17,7 @@ class PostSerializer(ModelSerializer):
     class Meta:
         model = Post
         fields = '__all__'
-        read_only_fields = ('created_at', 'updated_at', 'likes', 'comments', 'id', 'user')
+        read_only_fields = ('created_at', 'updated_at', 'likes', 'comments', 'id')
 
     def create(self, validated_data):
         medias = validated_data.pop('media', [])
@@ -227,6 +227,33 @@ class CommentLikeSerializer(ModelSerializer):
             comment.comment_likes.add(comment_like)
             comment.save()
             return {'message ': 'You have liked the comment'}
+
+    def to_representation(self, instance):
+        if isinstance(instance, dict):
+            return instance
+        return super().to_representation(instance)
+
+
+class HighlightLikeSerializer(ModelSerializer):  # noqa
+    user = HiddenField(default=CurrentUserDefault())
+
+    class Meta:
+        model = HighlightLike
+        exclude = ['id']
+        read_only_fields = ('created_at', 'updated_at',)
+
+    def create(self, validated_data):
+        user: UserProfile = validated_data['user']
+        highlight = validated_data['highlight']
+        like = highlight.highlight_likes.filter(user=user).first()
+        if like:
+            like.delete()
+            return {'message ': 'You have unliked the highlight'}
+        else:
+            highlight_like = HighlightLike.objects.create(user=user, reels=highlight)
+            highlight_like.highlight_likes.add(highlight_like)
+            highlight.save()
+            return {'message ': 'You have liked the highlight'}
 
     def to_representation(self, instance):
         if isinstance(instance, dict):
