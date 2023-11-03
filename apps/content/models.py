@@ -4,23 +4,15 @@ from django.db.models import CASCADE
 
 from conf import settings
 from shared.models import BaseModel, unique_id, CustomFileExtensionValidator
+from users.models import UserProfile
 
-file_ext_validator = CustomFileExtensionValidator(('mp4', 'mkv', 'avi', 'webm', '3gp', 'jpg', 'jpeg', 'png', 'webp'))
+file_ext_validator = CustomFileExtensionValidator(('mp4', 'mkv', 'avi', 'webm', '3gp', 'jpg', 'jpeg', 'png', 'webp', 'mov'))
 
 
 class Media(Model):
-    # user = ForeignKey('users.UserProfile', CASCADE, related_name='media_user', blank=True)
+    user = ForeignKey('users.UserProfile', CASCADE, related_name='media_user', blank=True)
     file = FileField(upload_to='posts/', validators=(file_ext_validator,))
     date = DateTimeField(auto_now_add=True)
-
-
-class Share(BaseModel):
-    user = ForeignKey(settings.AUTH_USER_MODEL, CASCADE, related_name='share_user')
-    post_shared_to = ForeignKey('users.UserProfile', CASCADE, related_name='shared_post', null=True, blank=True)
-    reels_shared_to = ForeignKey('users.UserProfile', CASCADE, related_name='shared_reels', null=True, blank=True)
-    story_shared_to = ForeignKey('users.UserProfile', CASCADE, related_name='shared_story', null=True, blank=True)
-    highlight_shared_to = ForeignKey('users.UserProfile', CASCADE, related_name='shared_highlight', null=True,
-                                     blank=True)
 
 
 class Post(BaseModel):
@@ -30,9 +22,7 @@ class Post(BaseModel):
     tag = ForeignKey('users.UserProfile', CASCADE, related_name="post_tags", blank=True, null=True)
     date = DateTimeField(auto_now_add=True)
     location = CharField(max_length=222, blank=True, null=True)
-    media = ManyToManyField('content.Media', related_name='posts',
-                            validators=[FileExtensionValidator(
-                                ['mp4', 'mkv', 'avi', 'webm', '3gp', 'jpg', 'jpeg', 'png', 'webp'])])
+    media = ManyToManyField('content.Media', related_name='posts')
     text = TextField(default='bu erda siz o\'ylagan ibora bor', blank=True, null=True)
 
     # Accessibility info
@@ -52,12 +42,15 @@ class Post(BaseModel):
     def get_number_of_comments(self):
         return self.post_comments.count()
 
+    def get_number_of_viewers(self):
+        return self.post_view.count()
+
 
 class Reels(BaseModel):
     id = CharField(primary_key=True, max_length=36, default=unique_id)
     user = ForeignKey(settings.AUTH_USER_MODEL, CASCADE, related_name='reels_user')
     caption = TextField(null=True, blank=True)
-    media = FileField(upload_to='reels/', validators=[FileExtensionValidator(['mp4', 'avi', 'mkv'])])
+    media = FileField(upload_to='reels/', validators=[FileExtensionValidator(['mp4', 'avi', 'mkv', 'mov'])])
 
     @property
     def get_number_of_likes(self):
@@ -137,6 +130,9 @@ class PostLike(BaseModel):
     def __str__(self):
         return 'Like: ' + self.user.username
 
+    def get_number_of_shared(self):
+        return self.shared_post.count()
+
 
 class StoryLike(BaseModel):
     user = ForeignKey(settings.AUTH_USER_MODEL, CASCADE, related_name='story_like_user')
@@ -145,6 +141,9 @@ class StoryLike(BaseModel):
 
     def __str__(self):
         return 'Like: ' + self.user.username
+
+    def get_number_of_shared(self):
+        return self.shared_story.count()
 
 
 class CommentLike(BaseModel):
@@ -158,10 +157,13 @@ class CommentLike(BaseModel):
 class ReelsLike(BaseModel):
     user = ForeignKey(settings.AUTH_USER_MODEL, CASCADE, related_name='reels_like_user')
     reels = ForeignKey('content.Reels', CASCADE, related_name='reels_likes')
-    share_to = ForeignKey('content.Share', CASCADE, related_name='reels_share')
+    share_to = ForeignKey('content.Share', CASCADE, related_name='reels_share', null=True, blank=True)
 
     def __str__(self):
         return 'Like: ' + self.user.username
+
+    def get_number_of_shared(self):
+        return self.shared_reels.count()
 
 
 class HighlightLike(BaseModel):
@@ -171,3 +173,15 @@ class HighlightLike(BaseModel):
 
     def __str__(self):
         return 'Like: ' + self.user.username
+
+    def get_number_of_shared(self):
+        return self.shared_highlight.count()
+
+
+class Share(BaseModel):
+    user = ForeignKey(settings.AUTH_USER_MODEL, CASCADE, related_name='share_user')
+    post_shared_to = ForeignKey('content.PostLike', CASCADE, related_name='shared_post', null=True, blank=True)
+    reels_shared_to = ForeignKey('content.ReelsLike', CASCADE, related_name='shared_reels', null=True, blank=True)
+    story_shared_to = ForeignKey('content.StoryLike', CASCADE, related_name='shared_story', null=True, blank=True)
+    highlight_shared_to = ForeignKey('content.HighlightLike', CASCADE, related_name='shared_highlight', null=True,
+                                     blank=True)

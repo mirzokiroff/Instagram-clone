@@ -1,3 +1,4 @@
+from django.http import Http404
 from django.utils.decorators import method_decorator
 from drf_yasg import utils, openapi
 from rest_framework import status
@@ -9,9 +10,9 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated, AllowAny, BasePermission
 from content.serializers import PostSerializer, StorySerializer, StoryLikeSerializer, \
     CommentSerializer, HighlightSerializer, ReelsSerializer, PostLikeSerializer, ReelsLikeSerializer, \
-    CommentLikeSerializer, UpdatePostSerializer, HighlightLikeSerializer
+    CommentLikeSerializer, UpdatePostSerializer, HighlightLikeSerializer, ShareSerializer
 from content.models import ReelsLike, Post, Reels, Story, StoryLike, PostLike, Highlight, Comment, CommentLike, \
-    HighlightLike
+    HighlightLike, Share
 
 
 class IsAuthenticatedAndOwner(BasePermission):
@@ -62,6 +63,18 @@ class ReelsViewSet(ModelViewSet):
         if user_id:
             queryset = queryset.filter(user=user_id)
         return queryset
+
+    # def destroy(self, request, *args, **kwargs):
+    #     instance = self.get_object()
+    #
+    #     user_id = instance.user.id
+    #     reel_user_id = instance.user.id
+    #
+    #     if user_id == reel_user_id:
+    #         instance.delete()
+    #         return Response({"message": "You have delete the reel"})
+    #     else:
+    #         raise Http404("You can only delete your own reel")
 
 
 class StoryViewSet(ModelViewSet):
@@ -182,6 +195,20 @@ class HighlightLikeViewSet(ListCreateAPIView):
     def get_queryset(self):
         user_id = self.request.user
         queryset = HighlightLike.objects.all()
+        if user_id:
+            queryset = queryset.filter(user=user_id)
+        return queryset
+
+
+class ShareViewSet(ModelViewSet):
+    queryset = Share.objects.all()
+    serializer_class = ShareSerializer
+    permission_classes = [IsAuthenticated]
+    http_method_names = 'get', 'post', 'delete'
+
+    def get_queryset(self):
+        user_id = self.request.user
+        queryset = Share.objects.all()
         if user_id:
             queryset = queryset.filter(user=user_id)
         return queryset

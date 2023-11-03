@@ -9,11 +9,18 @@ from .oauth2 import oauth2_sign_in
 from .serializers import UserProfileSerializer, UserSerializer, RegisterSerializer, LoginSerializer, \
     UserFollowingModelSerializer, UserViewProfileModelSerializer, FollowersSerializer, SignInWithOauth2Serializer
 from .models import UserProfile
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 from rest_framework import status
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from django.utils.text import slugify
+
+
+class IsAuthenticatedAndOwner(BasePermission):
+    message = 'You must be the owner of this object.'
+
+    def has_object_permission(self, request, view, obj):
+        return obj.user == request.user
 
 
 class AccountViewSet(ModelViewSet):
@@ -71,7 +78,7 @@ class FollowersView(RetrieveAPIView):
 
 class ProfileRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     serializer_class = UserProfileSerializer
-    http_method_names = ('get',)
+    http_method_names = ('get', 'patch')
 
     def get_object(self):
         user = self.request.user
@@ -120,17 +127,33 @@ class RegisterView(CreateAPIView):
 
 class LoginView(CreateAPIView):
     serializer_class = LoginSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [AllowAny, ]
 
     def create(self, request, *args, **kwargs):
         username = request.data.get("username")
         password = request.data.get("password")
-        user = authenticate(username=username, password=password)
+        # confirm_password = request.data.get("confirm_password")
+        user = authenticate(username=username, password=password)  # confirm_password=confirm_password) # noqa
         if user:
             refresh = RefreshToken.for_user(user)
             return Response({"refresh": str(refresh), "access": str(refresh.access_token)})  # noqa
         else:
             return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # def destroy(self, request, *args, **kwargs):
+    #     username = request.data.get("username")
+    #     password = request.data.get("password")
+    #     current_user = self.request.user
+    #
+    #     if current_user.is_authenticated:
+    #         current_user.is_logged_in = False
+    #         current_user.save()
+    #
+    #         current_user.access_token.delete()
+    #
+    #         return Response({'message': 'You have been logged out'}, status=status.HTTP_200_OK)
+    #
+    #     return Response({'message': 'You are not logged in'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class SignInWithOauth2APIView(CreateAPIView):

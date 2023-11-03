@@ -2,9 +2,27 @@ from django.contrib.auth.hashers import make_password
 from django.db.models import Model, CharField, TextField, URLField, ManyToManyField, ImageField, \
     BooleanField, EmailField
 from django.contrib.auth.models import AbstractUser, UserManager
+from rest_framework.authentication import BaseAuthentication
+from rest_framework.exceptions import AuthenticationFailed
 
 
 # Create your models here.
+class BearerTokenAuthentication(BaseAuthentication):
+    def authenticate(self, request):
+        auth_header = request.META.get('HTTP_AUTHORIZATION')
+        if not auth_header:
+            return None
+
+        parts = auth_header.split()
+        if len(parts) != 2 or parts[0].lower() != 'bearer':
+            return None
+
+        token = parts[1]
+        try:
+            user = UserProfile.objects.all(username=token)
+            return (user, None)
+        except UserProfile.DoesNotExist:
+            raise AuthenticationFailed('Invalid Authorization')
 
 
 class CustomUserManager(UserManager):

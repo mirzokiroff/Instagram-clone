@@ -1,4 +1,5 @@
-from rest_framework.exceptions import ValidationError
+from rest_framework.authentication import BaseAuthentication, TokenAuthentication
+from rest_framework.exceptions import ValidationError, AuthenticationFailed
 from rest_framework.serializers import ModelSerializer, Serializer
 from users.models import UserProfile
 from rest_framework.fields import IntegerField, DateTimeField, HiddenField, CurrentUserDefault, CharField
@@ -7,12 +8,35 @@ from rest_framework.relations import SlugRelatedField
 from users.oauth2 import oauth2_sign_in
 
 
+class BearerTokenAuthentication(TokenAuthentication):
+    def authenticate(self, request):
+        auth = super().authenticate(request)
+        if auth is not None:
+            return auth  # Agar avtorizatsiya amalga oshsa, uning natijasini qaytar
+
+        auth_header = request.META.get('HTTP_AUTHORIZATION')
+        if not auth_header:
+            return None
+
+        parts = auth_header.split()
+        if len(parts) != 2 or parts[0].lower() != 'bearer':
+            return None
+
+        token = parts[1]
+        try:
+            user = UserProfile.objects.get(username=token)
+            return (user, None)
+        except UserProfile.DoesNotExist:
+            raise AuthenticationFailed('Invalid authorization')
+
+
 class UserProfileSerializer(ModelSerializer):
     user = HiddenField(default=CurrentUserDefault())
     date = DateTimeField(format='%d-%m-%Y', read_only=True)
     last_login = DateTimeField(format='%d-%m-%Y', read_only=True)
     following = IntegerField(source='following.count', read_only=True)
     followers = IntegerField(source='followers.count', read_only=True)
+
     # likes = IntegerField(source='likes.count', read_only=True)
 
     class Meta:
@@ -110,6 +134,7 @@ class LoginSerializer(ModelSerializer):
         fields = ['username', 'password']
         username = CharField(max_length=111)
         password = CharField(write_only=True)
+        # confirm_password = CharField(write_only=True)
 
 
 class RegisterSerializer(ModelSerializer):
@@ -121,7 +146,7 @@ class RegisterSerializer(ModelSerializer):
 class SignInWithOauth2Serializer(Serializer):
     token = CharField(required=True)
 
-    def validate_token(self, token): # noqa
+    def validate_token(self, token):  # noqa
         user = oauth2_sign_in(token)
 
         if user is None:

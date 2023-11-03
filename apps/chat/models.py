@@ -3,13 +3,19 @@ from django.db.models import CASCADE
 
 # Create your models here.
 from conf import settings
+from shared.models import BaseModel, unique_id
 
 
-class Message(models.Model):
+class Message(BaseModel):
+    id = models.CharField(primary_key=True, default=unique_id, max_length=36)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, CASCADE, related_name="message_user")
-    text = models.TextField()
-    to_whom = models.ForeignKey('users.UserProfile', CASCADE, related_name="message_to_whom")
-    from_whom = models.ForeignKey('users.UserProfile', CASCADE, related_name="message_from_whom")
+    message = models.TextField()
+    receiver = models.ForeignKey('users.UserProfile', CASCADE, related_name="receiver")
+    sender = models.ForeignKey('users.UserProfile', CASCADE, related_name="sender")
     date = models.DateTimeField(auto_now_add=True)
-    liked = models.ManyToManyField('users.UserProfile', related_name='message_like')
-    # media = models.ForeignKey(settings.MEDIA, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return self.message
+
+    class Meta:
+        ordering = ('date',)
