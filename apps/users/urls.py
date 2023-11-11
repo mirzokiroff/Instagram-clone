@@ -6,11 +6,11 @@ from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 router.register('user', UserDetailView, basename='user'),
+router.register('profile', AccountViewSet, basename='profile'),
 
 urlpatterns = [
     path('', include(router.urls)),
 
-    path('profileee/', AccountViewSet.as_view, name='profile'),
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
     path('login-with-google/', SignInWithOauth2APIView.as_view(), name='google_login'),

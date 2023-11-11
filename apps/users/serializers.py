@@ -1,33 +1,10 @@
-from rest_framework.authentication import BaseAuthentication, TokenAuthentication
-from rest_framework.exceptions import ValidationError, AuthenticationFailed
+from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import ModelSerializer, Serializer
 from users.models import UserProfile
 from rest_framework.fields import IntegerField, DateTimeField, HiddenField, CurrentUserDefault, CharField
 from rest_framework.relations import SlugRelatedField
 
 from users.oauth2 import oauth2_sign_in
-
-
-class BearerTokenAuthentication(TokenAuthentication):
-    def authenticate(self, request):
-        auth = super().authenticate(request)
-        if auth is not None:
-            return auth  # Agar avtorizatsiya amalga oshsa, uning natijasini qaytar
-
-        auth_header = request.META.get('HTTP_AUTHORIZATION')
-        if not auth_header:
-            return None
-
-        parts = auth_header.split()
-        if len(parts) != 2 or parts[0].lower() != 'bearer':
-            return None
-
-        token = parts[1]
-        try:
-            user = UserProfile.objects.get(username=token)
-            return (user, None)
-        except UserProfile.DoesNotExist:
-            raise AuthenticationFailed('Invalid authorization')
 
 
 class UserProfileSerializer(ModelSerializer):
@@ -43,11 +20,9 @@ class UserProfileSerializer(ModelSerializer):
         model = UserProfile
         exclude = ['likes', 'is_superuser', 'is_staff', 'groups', 'user_permissions', 'is_active', 'date_joined']
 
-        def to_representation(self, instance):
-            data = super().to_representation(instance)  # noqa
-            # data['followers'] = instance.followers_count
-            # data['following'] = instance.following_count
-            return data
+    def to_representation(self, instance):
+        data = super().to_representation(instance)  # noqa
+        return data
 
 
 class UserViewProfileModelSerializer(ModelSerializer):

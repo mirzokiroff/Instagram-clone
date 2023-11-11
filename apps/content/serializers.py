@@ -158,7 +158,7 @@ class StoryLikeSerializer(ModelSerializer):  # noqa
     class Meta:
         model = StoryLike
         fields = '__all__'
-        read_only_fields = ('created_at', 'updated_at',)
+        read_only_fields = ('created_at', 'updated_at', 'user')
 
     def create(self, validated_data):
         user: UserProfile = validated_data['user']
@@ -262,43 +262,23 @@ class HighlightLikeSerializer(ModelSerializer):  # noqa
 
 class ShareSerializer(ModelSerializer):
     user = HiddenField(default=CurrentUserDefault())
-    post_shared_to = CharField(required=False, allow_null=True)
-    reels_shared_to = CharField(required=False, allow_null=True)
-    story_shared_to = CharField(required=False, allow_null=True)
-    highlight_shared_to = CharField(required=False, allow_null=True)
 
     class Meta:
         model = Share
         fields = '__all__'
-        read_only_fields = ['id']
+        read_only_fields = ['id', 'user']
 
-    def create(self, validated_data):
-        user = validated_data['user']
-        post_id: PostLike = validated_data['post_shared_to']
-        reel_id: ReelsLike = validated_data['reels_shared_to']
-        story_id: StoryLike = validated_data['story_shared_to']
-        highlight_id: HighlightLike = validated_data['highlight_shared_to']
+    def validate(self, data):
+        post_shared_to = data.get('post_shared_to')
+        reels_shared_to = data.get('reels_shared_to')
+        story_shared_to = data.get('story_shared_to')
+        highlight_shared_to = data.get('highlight_shared_to')
 
-        if post_id and reel_id and story_id and highlight_id:
-            return {'error': 'You must specify only one.'}
+        non_empty_count = sum(bool(x) for x in [post_shared_to, reels_shared_to, story_shared_to, highlight_shared_to])
 
-        if post_id:
-            post_share = Share.objects.create(user=user, post_shared_to_id=post_id)
-            post_id.shared_post.add(post_share)
-            post_id.save()
-            return {'message ': 'You have successfully shared'}
-        if reel_id:
-            reel_share = Share.objects.create(user=user, reels=reel_id)
-            reel_id.shared_reels.add(reel_share)
-            reel_id.save()
-            return {'message ': 'You have successfully shared'}
-        if story_id:
-            story_share = Share.objects.create(user=user, highlight=highlight_id)
-            story_id.shared_story.add(story_share)
-            story_id.save()
-            return {'message ': 'You have successfully shared'}
-        if highlight_id:
-            highlight_share = Share.objects.create(user=user, highlight=highlight_id)
-            highlight_id.shared_highlight.add(highlight_share)
-            highlight_id.save()
-            return {'message ': 'You have successfully shared'}
+        if non_empty_count != 1:
+            raise ValidationError(
+                "You must specify only one of post_shared_to, reels_shared_to, story_shared_to, or highlight_shared_to.")
+
+        return data
+

@@ -1,8 +1,7 @@
-from django.http import Http404
 from django.utils.decorators import method_decorator
 from drf_yasg import utils, openapi
 from rest_framework import status
-from rest_framework.generics import ListCreateAPIView
+from rest_framework.generics import ListCreateAPIView, DestroyAPIView
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 
@@ -35,7 +34,7 @@ class PostViewSet(ModelViewSet):
     serializer_class = PostSerializer
     parser_classes = [MultiPartParser]
     permission_classes = [AllowAny, IsAuthenticatedAndOwner]
-    http_method_names = ('get', 'post', 'patch', 'delete')
+    http_method_names = ('get', 'post', 'delete')
 
     def get_queryset(self):
         user_id = self.request.user
@@ -138,77 +137,44 @@ class HighlightViewSet(ModelViewSet):
 class PostLikeViewSet(ListCreateAPIView):
     queryset = PostLike.objects.all()
     serializer_class = PostLikeSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        user_id = self.request.user
-        queryset = PostLike.objects.all()
-        if user_id:
-            queryset = queryset.filter(user=user_id)
-        return queryset
+    permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
 
 
 class StoryLikeViewSet(ListCreateAPIView):
     queryset = StoryLike.objects.all()
     serializer_class = StoryLikeSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        user_id = self.request.user
-        queryset = StoryLike.objects.all()
-        if user_id:
-            queryset = queryset.filter(user=user_id)
-        return queryset
+    permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
 
 
 class CommentLikeViewSet(ListCreateAPIView):
     queryset = CommentLike.objects.all()
     serializer_class = CommentLikeSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        user_id = self.request.user
-        queryset = CommentLike.objects.all()
-        if user_id:
-            queryset = queryset.filter(user=user_id)
-        return queryset
+    permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
 
 
 class ReelsLikeViewSet(ListCreateAPIView):
     queryset = ReelsLike.objects.all()
     serializer_class = ReelsLikeSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        user_id = self.request.user
-        queryset = ReelsLike.objects.all()
-        if user_id:
-            queryset = queryset.filter(user=user_id)
-        return queryset
+    permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
 
 
 class HighlightLikeViewSet(ListCreateAPIView):
     queryset = HighlightLike.objects.all()
     serializer_class = HighlightLikeSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        user_id = self.request.user
-        queryset = HighlightLike.objects.all()
-        if user_id:
-            queryset = queryset.filter(user=user_id)
-        return queryset
+    permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
 
 
-class ShareViewSet(ModelViewSet):
+class ShareViewSet(ListCreateAPIView, DestroyAPIView):
     queryset = Share.objects.all()
     serializer_class = ShareSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
     http_method_names = 'get', 'post', 'delete'
 
-    def get_queryset(self):
-        user_id = self.request.user
-        queryset = Share.objects.all()
-        if user_id:
-            queryset = queryset.filter(user=user_id)
-        return queryset
+    # def create(self, request, *args, **kwargs):
+    #     data = request.data
+    #     data['user'] = request.user.id
+    #     serializer = self.get_serializer(data=data)
+    #     serializer.is_valid(raise_exception=True)
+    #     self.perform_create(serializer)
+    #     headers = self.get_success_headers(serializer.data)
+    #     return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

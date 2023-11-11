@@ -26,9 +26,9 @@ class IsAuthenticatedAndOwner(BasePermission):
 class AccountViewSet(ModelViewSet):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
-    permission_classes = [IsAuthenticated, ]
+    permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
     parser_classes = [MultiPartParser, ]
-    http_method_names = ('get', 'get_id', 'patch')
+    http_method_names = ('get', 'patch')
 
 
 class UserDetailView(ModelViewSet):

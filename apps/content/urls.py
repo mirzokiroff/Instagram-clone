@@ -10,10 +10,10 @@ router.register('reel', ReelsViewSet, basename='reels'),
 router.register('story', StoryViewSet, basename='story'),
 router.register('highlight', HighlightViewSet, basename='highlight'),
 router.register('comment', CommentViewSet, basename='comment'),
-router.register('share', ShareViewSet, basename='share'),
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('share/', ShareViewSet.as_view(), name='share'),
     path('post-like/', PostLikeViewSet.as_view(), name='post_like'),
     path('story-like/', StoryLikeViewSet.as_view(), name='story_like'),
     path('reels-like/', ReelsLikeViewSet.as_view(), name='reels_like'),
