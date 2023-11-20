@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from content.views import PostViewSet, ReelsViewSet, PostLikeViewSet, StoryLikeViewSet, \
-    CommentLikeViewSet, ReelsLikeViewSet, StoryViewSet, CommentViewSet, HighlightViewSet, ShareViewSet
+    CommentLikeViewSet, ReelsLikeViewSet, StoryViewSet, CommentViewSet, HighlightViewSet, ShareViewSet, NotificationViewSet
 
 router = DefaultRouter()
 router.register('post', PostViewSet, basename='posts'),
@@ -18,4 +18,5 @@ urlpatterns = [
     path('story-like/', StoryLikeViewSet.as_view(), name='story_like'),
     path('reels-like/', ReelsLikeViewSet.as_view(), name='reels_like'),
     path('comment-like/', CommentLikeViewSet.as_view(), name='comment_like'),
+    path('notification/', NotificationViewSet.as_view(), name='notification'),
 ]

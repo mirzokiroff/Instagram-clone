@@ -1,17 +1,18 @@
 from django.utils.decorators import method_decorator
 from drf_yasg import utils, openapi
 from rest_framework import status
-from rest_framework.generics import ListCreateAPIView, DestroyAPIView
+from rest_framework.generics import ListCreateAPIView, DestroyAPIView, ListAPIView
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated, AllowAny, BasePermission
 from content.serializers import PostSerializer, StorySerializer, StoryLikeSerializer, \
     CommentSerializer, HighlightSerializer, ReelsSerializer, PostLikeSerializer, ReelsLikeSerializer, \
-    CommentLikeSerializer, UpdatePostSerializer, HighlightLikeSerializer, ShareSerializer
+    CommentLikeSerializer, UpdatePostSerializer, HighlightLikeSerializer, ShareSerializer, NotificationSerializer
 from content.models import ReelsLike, Post, Reels, Story, StoryLike, PostLike, Highlight, Comment, CommentLike, \
-    HighlightLike, Share
+    HighlightLike, Share, Notification
 
 
 class IsAuthenticatedAndOwner(BasePermission):
@@ -109,14 +110,7 @@ class HighlightViewSet(ModelViewSet):
     queryset = Highlight.objects.all()
     serializer_class = HighlightSerializer
     permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
-    http_method_names = ('get', 'post', 'patch', 'delete')
-
-    def get_queryset(self):
-        user_id = self.request.user
-        queryset = Highlight.objects.all()
-        if user_id:
-            queryset = queryset.filter(user=user_id)
-        return queryset
+    http_method_names = ('get', 'post', 'delete')
 
     def post(self, request):
         user_id = request.user.id
@@ -170,11 +164,14 @@ class ShareViewSet(ListCreateAPIView, DestroyAPIView):
     permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
     http_method_names = 'get', 'post', 'delete'
 
-    # def create(self, request, *args, **kwargs):
-    #     data = request.data
-    #     data['user'] = request.user.id
-    #     serializer = self.get_serializer(data=data)
-    #     serializer.is_valid(raise_exception=True)
-    #     self.perform_create(serializer)
-    #     headers = self.get_success_headers(serializer.data)
-    #     return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+class NotificationViewSet(APIView):
+    queryset = Notification.objects.all()
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
+
+    def get(self, request):
+        notifications = Notification.objects.filter(user=request.user, is_read=False)
+        serializer = NotificationSerializer(notifications, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+

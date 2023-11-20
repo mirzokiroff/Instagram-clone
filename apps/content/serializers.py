@@ -6,7 +6,7 @@ from rest_framework.fields import SkipField, HiddenField, CurrentUserDefault, Li
 from rest_framework.relations import PKOnlyObject, PrimaryKeyRelatedField
 from rest_framework.serializers import ModelSerializer
 from content.models import Media, Post, PostLike, StoryLike, Story, Reels, CommentLike, Highlight, Comment, \
-    ReelsLike, file_ext_validator, HighlightLike, Share
+    ReelsLike, file_ext_validator, HighlightLike, Share, Notification
 from users.models import UserProfile
 
 
@@ -93,12 +93,13 @@ class CommentSerializer(ModelSerializer):
         user: UserProfile = validated_data['user']
         post_id: Post = validated_data['post']
         reel_id: Reels = validated_data['reels']
+        comment: Comment = validated_data['comments']
 
         if post_id and reel_id:
             return {'error': 'You must specify either "post" or "reels".'}
 
         if post_id:
-            post_comment = Comment.objects.create(user=user, post=post_id)
+            post_comment = Comment.objects.create(user=user, post=post_id, comments=comment)
             post_id.post_comments.add(post_comment)
             post_id.save()
             return {'message ': 'You have successfully commented'}
@@ -281,4 +282,16 @@ class ShareSerializer(ModelSerializer):
                 "You must specify only one of post_shared_to, reels_shared_to, story_shared_to, or highlight_shared_to.")
 
         return data
+
+
+class NotificationSerializer(ModelSerializer):
+    user = HiddenField(default=CurrentUserDefault())
+
+    class Meta:
+        model = Notification
+        fields = '__all__'
+        read_only_fields = ['created_at', 'updated_at', 'user']
+
+    # def create(self, validated_data):
+    #     pass
 
