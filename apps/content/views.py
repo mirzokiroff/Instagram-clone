@@ -170,8 +170,3 @@ class NotificationViewSet(APIView):
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
 
-    def get(self, request):
-        notifications = Notification.objects.filter(user=request.user, is_read=False)
-        serializer = NotificationSerializer(notifications, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
