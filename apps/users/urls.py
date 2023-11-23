@@ -5,8 +5,8 @@ from .views import UserDetailView, AccountViewSet, RegisterView, LoginView, Foll
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
-router.register('user', UserDetailView, basename='user'),
-router.register('profile', AccountViewSet, basename='profile'),
+# router.register('user', UserDetailView, basename='user'),
+# router.register('profile', AccountViewSet, basename='profile'),
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -24,5 +24,5 @@ urlpatterns = [
 
     path('followers-following/<str:username>/', FollowersView.as_view(), name='followers_following'),
 
-    path('<str:username>/', ProfileRetrieveUpdateDestroyAPIView.as_view(), name='profile_retrieve_update_destroy_api'),
+    path('profile', ProfileRetrieveUpdateDestroyAPIView.as_view(), name='profile_retrieve_update_destroy_api'),
 ]

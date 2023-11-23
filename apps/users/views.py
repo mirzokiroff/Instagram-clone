@@ -35,8 +35,9 @@ class UserDetailView(ModelViewSet):
     queryset = UserProfile.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser]
     lookup_field = 'pk'
-    http_method_names = ('get', 'patch')
+    http_method_names = ('patch', )
 
 
 class FollowListCreateAPIVIew(ListCreateAPIView):
@@ -78,11 +79,12 @@ class FollowersView(RetrieveAPIView):
 
 class ProfileRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     serializer_class = UserProfileSerializer
+    parser_classes = [MultiPartParser]
     http_method_names = ('get', 'patch')
 
     def get_object(self):
         user = self.request.user
-        if user.is_authenticated and user.username == self.kwargs['username']:
+        if user.is_authenticated:
             return user
         user = UserProfile.objects.filter(username=slugify(self.kwargs['username']))
         if user:
@@ -106,6 +108,8 @@ class ProfileRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
             serializer = self.get_serializer(instance, data=request.data, partial=partial)
             serializer.is_valid(raise_exception=True)
             self.perform_update(serializer)
+            instance.set_password(instance.password)
+            instance.save()
 
             if getattr(instance, '_prefetched_objects_cache', None):
                 instance._prefetched_objects_cache = {}
@@ -139,21 +143,6 @@ class LoginView(CreateAPIView):
             return Response({"refresh": str(refresh), "access": str(refresh.access_token)})  # noqa
         else:
             return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
-
-    # def destroy(self, request, *args, **kwargs):
-    #     username = request.data.get("username")
-    #     password = request.data.get("password")
-    #     current_user = self.request.user
-    #
-    #     if current_user.is_authenticated:
-    #         current_user.is_logged_in = False
-    #         current_user.save()
-    #
-    #         current_user.access_token.delete()
-    #
-    #         return Response({'message': 'You have been logged out'}, status=status.HTTP_200_OK)
-    #
-    #     return Response({'message': 'You are not logged in'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class SignInWithOauth2APIView(CreateAPIView):

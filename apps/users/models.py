@@ -56,7 +56,6 @@ class UserProfile(AbstractUser):
     is_public = BooleanField(default=True)
 
     email = EmailField(max_length=222, unique=True)
-    # name = CharField(max_length=255, unique=True)
 
     # USERNAME_FIELD = "name"
     EMAIL_FIELD = "email"

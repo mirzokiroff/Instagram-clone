@@ -121,7 +121,7 @@ class HighlightSerializer(ModelSerializer):
     class Meta:
         model = Highlight
         fields = '__all__'
-        read_only_fields = ('id', 'created_at', 'updated_at',)
+        read_only_fields = ('id', 'created_at', 'updated_at')
 
 
 class PostLikeSerializer(ModelSerializer):  # noqa
@@ -240,7 +240,7 @@ class HighlightLikeSerializer(ModelSerializer):  # noqa
     class Meta:
         model = HighlightLike
         exclude = ['id']
-        read_only_fields = ('created_at', 'updated_at',)
+        read_only_fields = ('created_at', 'updated_at')
 
     def create(self, validated_data):
         user: UserProfile = validated_data['user']
@@ -250,15 +250,22 @@ class HighlightLikeSerializer(ModelSerializer):  # noqa
             like.delete()
             return {'message ': 'You have unliked the highlight'}
         else:
-            highlight_like = HighlightLike.objects.create(user=user, reels=highlight)
-            highlight_like.highlight_likes.add(highlight_like)
+            highlight_like = HighlightLike.objects.create(user=user, highlight=highlight)
+            highlight.highlight_likes.add(highlight_like)
             highlight.save()
             return {'message ': 'You have liked the highlight'}
 
     def to_representation(self, instance):
-        if isinstance(instance, dict):
-            return instance
-        return super().to_representation(instance)
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        user = request.user.username
+        for like in data.get("likes"):
+            if user == like:
+                data['is_liked'] = True
+                break
+        else:
+            data['is_liked'] = False
+        return data
 
 
 class ShareSerializer(ModelSerializer):
@@ -292,5 +299,6 @@ class NotificationSerializer(ModelSerializer):
         fields = '__all__'
         read_only_fields = ['created_at', 'updated_at', 'user']
 
-    # def create
-
+    # def create(self, validated_data):
+    #     user: UserProfile = validated_data['followers']
+    #     reel = validated_data['notification_reel_like']

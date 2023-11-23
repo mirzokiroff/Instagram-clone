@@ -110,7 +110,11 @@ class Highlight(BaseModel):
     highlight = ForeignKey('content.Story', CASCADE, related_name='highlight')
 
     def __str__(self):
-        return self.user
+        return self.user.username
+
+    @property
+    def get_numbers_of_likes(self):
+        return self.highlight_likes.count()
 
 
 class Viewers(BaseModel):
@@ -153,7 +157,7 @@ class ReelsLike(BaseModel):
 
 class HighlightLike(BaseModel):
     user = ForeignKey(settings.AUTH_USER_MODEL, CASCADE, related_name='highlight_like_user')
-    highlight = ForeignKey('content.Highlight', CASCADE, related_name='highlight_like')
+    highlight = ForeignKey('content.Highlight', CASCADE, related_name='highlight_likes')
 
     def __str__(self):
         return 'Like: ' + self.user.username
@@ -179,4 +183,3 @@ class Notification(BaseModel):
     story_like_notification = ForeignKey('content.StoryLike', CASCADE, related_name='notification_story_like')
     post_like_notification = ForeignKey('content.PostLike', CASCADE, related_name='notification_post_like')
     followers_notification = ForeignKey('users.UserProfile', CASCADE, related_name='notification_followers')
-

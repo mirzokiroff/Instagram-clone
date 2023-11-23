@@ -1,7 +1,7 @@
 from django.utils.decorators import method_decorator
 from drf_yasg import utils, openapi
 from rest_framework import status
-from rest_framework.generics import ListCreateAPIView, DestroyAPIView, ListAPIView
+from rest_framework.generics import ListCreateAPIView, DestroyAPIView
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -63,18 +63,6 @@ class ReelsViewSet(ModelViewSet):
         if user_id:
             queryset = queryset.filter(user=user_id)
         return queryset
-
-    # def destroy(self, request, *args, **kwargs):
-    #     instance = self.get_object()
-    #
-    #     user_id = instance.user.id
-    #     reel_user_id = instance.user.id
-    #
-    #     if user_id == reel_user_id:
-    #         instance.delete()
-    #         return Response({"message": "You have delete the reel"})
-    #     else:
-    #         raise Http404("You can only delete your own reel")
 
 
 class StoryViewSet(ModelViewSet):

@@ -1,7 +1,8 @@
 from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import ModelSerializer, Serializer
 from users.models import UserProfile
-from rest_framework.fields import IntegerField, DateTimeField, HiddenField, CurrentUserDefault, CharField
+from rest_framework.fields import IntegerField, DateTimeField, HiddenField, CurrentUserDefault, CharField, \
+    ReadOnlyField, BooleanField
 from rest_framework.relations import SlugRelatedField
 
 from users.oauth2 import oauth2_sign_in
@@ -93,6 +94,18 @@ class FollowersSerializer(ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ('username', 'followers', 'following', 'user')
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        user = request.user.username
+        for follow in data.get("followers", None):
+            if user == follow:
+                data['is_following'] = True
+                break
+        else:
+            data['is_following'] = False
+        return data
 
 
 class UserSerializer(ModelSerializer):
