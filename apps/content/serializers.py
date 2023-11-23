@@ -256,16 +256,21 @@ class HighlightLikeSerializer(ModelSerializer):  # noqa
             return {'message ': 'You have liked the highlight'}
 
     def to_representation(self, instance):
-        data = super().to_representation(instance)
-        request = self.context.get('request')
-        user = request.user.username
-        for like in data.get("likes"):
-            if user == like:
-                data['is_liked'] = True
-                break
-        else:
-            data['is_liked'] = False
-        return data
+        if isinstance(instance, dict):
+            return instance
+        return super().to_representation(instance)
+
+    # def to_representation(self, instance):
+    #     data = super().to_representation(instance)
+    #     request = self.context.get('request')
+    #     user = request.user.username
+    #     for like in data.get("likes"):
+    #         if user == like:
+    #             data['is_liked'] = True
+    #             break
+    #     else:
+    #         data['is_liked'] = False
+    #     return data
 
 
 class ShareSerializer(ModelSerializer):
