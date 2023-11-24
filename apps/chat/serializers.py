@@ -4,7 +4,6 @@ from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer
 
 from chat.models import Message
-from users.models import UserProfile
 
 
 class MessageSerializer(ModelSerializer):

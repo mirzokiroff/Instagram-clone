@@ -1,8 +1,7 @@
 from collections import OrderedDict
 
-from rest_framework import authentication
-from rest_framework.exceptions import ValidationError, AuthenticationFailed
-from rest_framework.fields import SkipField, HiddenField, CurrentUserDefault, ListField, CharField
+from rest_framework.exceptions import ValidationError
+from rest_framework.fields import SkipField, HiddenField, CurrentUserDefault, ListField, CharField, FileField
 from rest_framework.relations import PKOnlyObject, PrimaryKeyRelatedField
 from rest_framework.serializers import ModelSerializer
 from content.models import Media, Post, PostLike, StoryLike, Story, Reels, CommentLike, Highlight, Comment, \
@@ -23,11 +22,14 @@ class PostSerializer(ModelSerializer):
     def create(self, validated_data):
         medias = validated_data.pop('media', [])
         media_ids = []
+
         if len(medias) > 10:
             raise ValidationError('media files must be less than 10')
+
         for media in medias:
             file = Media.objects.create(file=media)
             media_ids.append(file.id)
+
         validated_data['media'] = media_ids
         return super().create(validated_data)
 
@@ -48,6 +50,7 @@ class PostSerializer(ModelSerializer):
                 ret[field.field_name] = [field.file.url for field in attribute.all()]
             else:
                 ret[field.field_name] = field.to_representation(attribute)
+
         return ret
 
 
