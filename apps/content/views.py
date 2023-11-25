@@ -1,7 +1,7 @@
 from django.utils.decorators import method_decorator
 from drf_yasg import utils, openapi
 from rest_framework import status
-from rest_framework.generics import ListCreateAPIView, DestroyAPIView
+from rest_framework.generics import ListCreateAPIView, DestroyAPIView, ListAPIView
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -153,7 +153,7 @@ class ShareViewSet(ListCreateAPIView, DestroyAPIView):
     http_method_names = 'get', 'post', 'delete'
 
 
-class NotificationViewSet(APIView):
+class NotificationViewSet(ListAPIView):
     queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
