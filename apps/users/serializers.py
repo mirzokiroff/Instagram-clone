@@ -1,6 +1,6 @@
 from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import ModelSerializer, Serializer
-from users.models import UserProfile
+from users.models import UserProfile, UserSearch
 from rest_framework.fields import IntegerField, DateTimeField, HiddenField, CurrentUserDefault, CharField, \
     ReadOnlyField, BooleanField
 from rest_framework.relations import SlugRelatedField
@@ -19,7 +19,8 @@ class UserProfileSerializer(ModelSerializer):
 
     class Meta:
         model = UserProfile
-        exclude = ['likes', 'is_superuser', 'is_staff', 'groups', 'user_permissions', 'is_active', 'date_joined']
+        exclude = ['likes', 'is_superuser', 'is_staff', 'groups', 'user_permissions', 'is_active', 'date_joined',
+                   'password', 'email']
 
     def to_representation(self, instance):
         data = super().to_representation(instance)  # noqa
@@ -141,3 +142,9 @@ class SignInWithOauth2Serializer(Serializer):
             raise ValidationError('Invalid token')
 
         return user
+
+
+class SearchUserSerializer(ModelSerializer):
+    class Meta:
+        model = UserSearch
+        fields = ['search']

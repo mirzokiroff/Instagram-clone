@@ -3,12 +3,14 @@ from rest_framework.exceptions import NotAuthenticated, PermissionDenied, Valida
 from rest_framework.generics import ListCreateAPIView, ListAPIView, \
     RetrieveUpdateDestroyAPIView, CreateAPIView, RetrieveAPIView
 from rest_framework.parsers import MultiPartParser
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 from .oauth2 import oauth2_sign_in
 from .serializers import UserProfileSerializer, UserSerializer, RegisterSerializer, LoginSerializer, \
-    UserFollowingModelSerializer, UserViewProfileModelSerializer, FollowersSerializer, SignInWithOauth2Serializer
-from .models import UserProfile
+    UserFollowingModelSerializer, UserViewProfileModelSerializer, FollowersSerializer, SignInWithOauth2Serializer, \
+    SearchUserSerializer
+from .models import UserProfile, UserSearch
 from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 from rest_framework import status
 from rest_framework.response import Response
@@ -37,7 +39,7 @@ class UserDetailView(ModelViewSet):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser]
     lookup_field = 'pk'
-    http_method_names = ('patch', )
+    http_method_names = ('patch',)
 
 
 class FollowListCreateAPIVIew(ListCreateAPIView):
@@ -159,3 +161,29 @@ class SignInWithOauth2APIView(CreateAPIView):
                 return Response(oauth2_sign_in(token))
             return Response({'message': 'You have successfully signed in', 'user_id': user.token})
         raise ValidationError('token is missing or invalid')
+
+
+class SearchUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        search_query = self.kwargs.get('username')
+        # Use a valid lookup type for filtering (e.g., 'icontains' for case-insensitive containment)
+        queryset = UserProfile.objects.filter(username__icontains=search_query)
+        serializer = UserProfileSerializer(queryset, many=True)
+        search_data = UserSearch.objects.filter(search=search_query, user=request.user)
+        if search_data:
+            search_data.delete()
+        user = UserSearch.objects.create(search=search_query, user=request.user)
+        user.save()
+        user.refresh_from_db()
+        return Response(serializer.data)
+
+
+class SearchHistoryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        queryset = UserSearch.objects.filter(user=request.user)
+        serializer = SearchUserSerializer(queryset, many=True)
+        return Response(serializer.data)

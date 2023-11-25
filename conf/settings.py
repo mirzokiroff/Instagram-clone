@@ -76,12 +76,6 @@ CORS_ALLOW_HEADERS = (
 )
 
 CORS_ALLOW_ALL_ORIGINS = True
-# LOGIN_URL = 'login'
-# LOGIN_REDIRECT_URL = '/'
-# LOGOUT_URL = 'logout'
-# LOGOUT_REDIRECT_URL = 'login'
-# SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '198670701713-va7al1h0qngvhprn4nqu0ib7v5teju5u.apps.googleusercontent.com'
-# SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
 
 AUTH_USER_MODEL = 'users.UserProfile'
 
@@ -151,11 +145,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-# ACC = 'users.UserProfile'
-# MEDIA = 'content.Media'
-
-# MEDIA_URL = 'media/'
-# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -174,17 +163,6 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
-    # 'EXCEPTION_HANDLER': 'utils.exceptions.custom_exception_handler',
-    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    # 'PAGE_SIZE': 50
-    # 'DEFAULT_THROTTLE_CLASSES': [
-    #     'rest_framework.throttling.AnonRateThrottle',
-    #     'rest_framework.throttling.UserRateThrottle'
-    # ],
-    # 'DEFAULT_THROTTLE_RATES': {
-    #     'anon': '10/minute',
-    #     'user': '10/minute'
-    # }
 }
 
 SWAGGER_SETTINGS = {
@@ -208,25 +186,6 @@ SIMPLE_JWT = {
     # "TOKEN_OBTAIN_SERIALIZER": "apps.shared.rest_framework.CustomTokenObtainPairSerializer",
 
 }
-# USE_S3 = os.getenv('USE_S3', False)
-#
-# if USE_S3:
-#     # aws settings
-#     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-#     AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-#     AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
-#     AWS_DEFAULT_ACL = None
-#     AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
-#     AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
-#     # s3 static settings
-#     STATIC_LOCATION = 'static'
-#     STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{STATIC_LOCATION}/'
-#     STATICFILES_STORAGE = 'shared.storage_backends.StaticStorage'
-#     # s3 public media settings
-#     PUBLIC_MEDIA_LOCATION = 'media'
-#     MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{PUBLIC_MEDIA_LOCATION}/'
-#     DEFAULT_FILE_STORAGE = 'shared.storage_backends.PublicMediaStorage'
-# else:
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR / 'static/')
 MEDIA_URL = 'media/'

@@ -1,6 +1,6 @@
 from django.contrib.auth.hashers import make_password
 from django.db.models import Model, CharField, TextField, URLField, ManyToManyField, ImageField, \
-    BooleanField, EmailField
+    BooleanField, EmailField, ForeignKey, CASCADE, DateTimeField
 from django.contrib.auth.models import AbstractUser, UserManager
 
 from shared.models import unique_id
@@ -85,3 +85,17 @@ class UserProfile(AbstractUser):
 
     def __str__(self):
         return self.fullname
+
+
+class UserSearch(Model):
+    search = CharField(max_length=128)
+    user = ForeignKey(UserProfile, CASCADE, blank=True, null=True)
+    created_at = DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return self.search
+
+

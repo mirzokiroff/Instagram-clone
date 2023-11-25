@@ -306,7 +306,3 @@ class NotificationSerializer(ModelSerializer):
         model = Notification
         fields = '__all__'
         read_only_fields = ['created_at', 'updated_at', 'user']
-
-    # def create(self, validated_data):
-    #     user: UserProfile = validated_data['followers']
-    #     reel = validated_data['notification_reel_like']

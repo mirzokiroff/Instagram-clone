@@ -1,6 +1,6 @@
 from django.core.validators import FileExtensionValidator
 from django.db.models import Model, ForeignKey, ManyToManyField, DateTimeField, CharField, TextField, FileField, \
-    BooleanField
+    BooleanField, IntegerField
 from django.db.models import CASCADE
 
 from conf import settings
@@ -174,12 +174,14 @@ class Share(BaseModel):
 
 
 class Notification(BaseModel):
-    user = ForeignKey(settings.AUTH_USER_MODEL, CASCADE, related_name='notification_user')
-    message = CharField(max_length=255)
-    is_red = BooleanField(default=False)
-    reel_like_notification = ForeignKey('content.ReelsLike', CASCADE, related_name='notification_reel_like')
-    comment_notification = ForeignKey('content.Comment', CASCADE, related_name='notification_comment')
-    comment_like_notification = ForeignKey('content.CommentLike', CASCADE, related_name='notification_comment_like')
-    story_like_notification = ForeignKey('content.StoryLike', CASCADE, related_name='notification_story_like')
-    post_like_notification = ForeignKey('content.PostLike', CASCADE, related_name='notification_post_like')
-    followers_notification = ForeignKey('users.UserProfile', CASCADE, related_name='notification_followers')
+    user = ForeignKey(settings.AUTH_USER_MODEL, CASCADE, related_name='notification_to_user')
+    sender = ForeignKey('users.UserProfile', CASCADE, related_name='notification_from_user')
+    message = CharField(max_length=77, blank=True)
+    is_seen = BooleanField(default=False)
+    date = DateTimeField(auto_now_add=True)
+    reel_like_notification = ForeignKey('content.ReelsLike', CASCADE, related_name='notification_reel_like', blank=True, null=True)
+    comment_notification = ForeignKey('content.Comment', CASCADE, related_name='notification_comment', blank=True, null=True)
+    comment_like_notification = ForeignKey('content.CommentLike', CASCADE, related_name='notification_comment_like', blank=True, null=True)
+    story_like_notification = ForeignKey('content.StoryLike', CASCADE, related_name='notification_story_like', blank=True, null=True)
+    post_like_notification = ForeignKey('content.PostLike', CASCADE, related_name='notification_post_like', blank=True, null=True)
+    followers_notification = ForeignKey('users.UserProfile', CASCADE, related_name='notification_followers', blank=True, null=True)
