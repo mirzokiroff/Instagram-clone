@@ -2,7 +2,7 @@ from collections import OrderedDict
 
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SkipField, HiddenField, CurrentUserDefault, ListField, CharField, FileField
-from rest_framework.relations import PKOnlyObject, PrimaryKeyRelatedField
+from rest_framework.relations import PKOnlyObject, PrimaryKeyRelatedField, SlugRelatedField
 from rest_framework.serializers import ModelSerializer
 from content.models import Media, Post, PostLike, StoryLike, Story, Reels, CommentLike, Highlight, Comment, \
     ReelsLike, file_ext_validator, HighlightLike, Share, Notification
@@ -72,6 +72,20 @@ class ReelsSerializer(ModelSerializer):
         model = Reels
         fields = '__all__'
         read_only_fields = ('created_at', 'updated_at', 'likes', 'comments', 'id', 'user')
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        user = request.user
+
+        for like in instance.reels_likes.all():
+            if user == like.user:
+                data['is_liked'] = True
+                break
+        else:
+            data['is_liked'] = False
+
+        return data
 
 
 class StorySerializer(ModelSerializer):

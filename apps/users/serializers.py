@@ -1,8 +1,7 @@
 from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import ModelSerializer, Serializer
 from users.models import UserProfile, UserSearch
-from rest_framework.fields import IntegerField, DateTimeField, HiddenField, CurrentUserDefault, CharField, \
-    ReadOnlyField, BooleanField
+from rest_framework.fields import IntegerField, DateTimeField, HiddenField, CurrentUserDefault, CharField
 from rest_framework.relations import SlugRelatedField
 
 from users.oauth2 import oauth2_sign_in

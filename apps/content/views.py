@@ -56,13 +56,6 @@ class ReelsViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
     http_method_names = ('get', 'post', 'patch', 'delete')
 
-    def get_queryset(self):
-        user_id = self.request.user
-        queryset = Reels.objects.all()
-        if user_id:
-            queryset = queryset.filter(user=user_id)
-        return queryset
-
 
 class StoryViewSet(ModelViewSet):
     queryset = Story.objects.all()
