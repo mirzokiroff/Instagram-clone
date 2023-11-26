@@ -95,7 +95,21 @@ class StorySerializer(ModelSerializer):
     class Meta:
         model = Story
         fields = '__all__'
-        read_only_fields = ('id', 'viewers', 'created_at', 'updated_at', 'user')
+        read_only_fields = ('id', 'viewers', 'created_at', 'updated_at', 'user', 'likes')
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        user = request.user
+
+        for like in instance.story_likes.all():
+            if user == like.user:
+                data['is_liked'] = True
+                break
+        else:
+            data['is_liked'] = False
+
+        return data
 
 
 class CommentSerializer(ModelSerializer):

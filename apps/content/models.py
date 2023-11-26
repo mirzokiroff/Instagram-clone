@@ -152,7 +152,7 @@ class ReelsLike(BaseModel):
     reels = ForeignKey('content.Reels', CASCADE, related_name='reels_likes')
 
     def __str__(self):
-        return 'Like: ' + self.user
+        return 'Like: ' + self.user.username
 
 
 class HighlightLike(BaseModel):
