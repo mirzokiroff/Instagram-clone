@@ -36,13 +36,6 @@ class PostViewSet(ModelViewSet):
     permission_classes = [AllowAny, IsAuthenticatedAndOwner]
     http_method_names = ('get', 'post', 'delete')
 
-    def get_queryset(self):
-        user_id = self.request.user
-        queryset = Post.objects.all()
-        if user_id:
-            queryset = queryset.filter(user=user_id)
-        return queryset
-
 
 class ReelsViewSet(ModelViewSet):
     queryset = Reels.objects.all()
@@ -58,13 +51,6 @@ class StoryViewSet(ModelViewSet):
     parser_classes = [MultiPartParser]
     permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
     http_method_names = ('get', 'post', 'delete')
-
-    def get_queryset(self):
-        user_id = self.request.user
-        queryset = Story.objects.all()
-        if user_id:
-            queryset = queryset.filter(user=user_id)
-        return queryset
 
 
 class CommentViewSet(ModelViewSet):
