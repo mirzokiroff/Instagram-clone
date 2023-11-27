@@ -51,21 +51,17 @@ class PostSerializer(ModelSerializer):
             else:
                 ret[field.field_name] = field.to_representation(attribute)
 
-        return ret
+        request = self.context.get('request')
+        user = request.user
+        like_exist = instance.post_likes.exists()
 
-    # def to_representation(self, instance):
-    #     data = super().to_representation(instance)
-    #     request = self.context.get('request')
-    #     user = request.user
-    #     likes_exists = instance.post_likes.exists()
-    #
-    #     if likes_exists:
-    #         user_has_liked = instance.post_likes.filter(user=user).exists()
-    #         data['is_liked'] = user == user_has_liked.user
-    #     else:
-    #         data['is_liked'] = False
-    #
-    #     return data
+        if like_exist:
+            user_has_liked = instance.post_likes.filter(user=user).exists()
+            ret['is_liked'] = user_has_liked
+        else:
+            ret['is_liked'] = False
+
+        return ret
 
 
 class ReelsSerializer(ModelSerializer):
