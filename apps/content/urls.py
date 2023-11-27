@@ -8,7 +8,7 @@ from content.views import PostViewSet, ReelsViewSet, PostLikeViewSet, StoryLikeV
 router = DefaultRouter()
 router.register('post', PostViewSet, basename='posts'),
 router.register('reel', ReelsViewSet, basename='reels'),
-router.register('story', StoryViewSet, basename='story'),
+router.register('story', StoryViewSet, basename='story'),#
 router.register('highlight', HighlightViewSet, basename='highlight'),
 router.register('comment', CommentViewSet, basename='comment'),
 

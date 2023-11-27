@@ -9,7 +9,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated, AllowAny, BasePermission
 from content.serializers import PostSerializer, StorySerializer, StoryLikeSerializer, \
     CommentSerializer, HighlightSerializer, ReelsSerializer, PostLikeSerializer, ReelsLikeSerializer, \
-    CommentLikeSerializer, UpdatePostSerializer, HighlightLikeSerializer, ShareSerializer, NotificationSerializer
+    CommentLikeSerializer, HighlightLikeSerializer, ShareSerializer, NotificationSerializer
 from content.models import ReelsLike, Post, Reels, Story, StoryLike, PostLike, Highlight, Comment, CommentLike, \
     HighlightLike, Share, Notification
 
@@ -42,11 +42,6 @@ class PostViewSet(ModelViewSet):
         if user_id:
             queryset = queryset.filter(user=user_id)
         return queryset
-
-    def get_serializer_class(self):
-        if self.action == 'partial_update':
-            return UpdatePostSerializer
-        return super().get_serializer_class()
 
 
 class ReelsViewSet(ModelViewSet):

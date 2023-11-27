@@ -1,8 +1,8 @@
 from collections import OrderedDict
 
 from rest_framework.exceptions import ValidationError
-from rest_framework.fields import SkipField, HiddenField, CurrentUserDefault, ListField, CharField, FileField
-from rest_framework.relations import PKOnlyObject, PrimaryKeyRelatedField, SlugRelatedField
+from rest_framework.fields import HiddenField, CurrentUserDefault, ListField, CharField, SkipField
+from rest_framework.relations import PrimaryKeyRelatedField, PKOnlyObject
 from rest_framework.serializers import ModelSerializer
 from content.models import Media, Post, PostLike, StoryLike, Story, Reels, CommentLike, Highlight, Comment, \
     ReelsLike, file_ext_validator, HighlightLike, Share, Notification
@@ -53,15 +53,19 @@ class PostSerializer(ModelSerializer):
 
         return ret
 
-
-class UpdatePostSerializer(ModelSerializer):
-    class Meta:
-        model = Post
-        fields = ['location']
-        read_only_fields = ('created_at', 'updated_at', 'likes', 'comments', 'id')
-
-    def to_representation(self, instance):
-        return PostSerializer(instance).data
+    # def to_representation(self, instance):
+    #     data = super().to_representation(instance)
+    #     request = self.context.get('request')
+    #     user = request.user
+    #     likes_exists = instance.post_likes.exists()
+    #
+    #     if likes_exists:
+    #         user_has_liked = instance.post_likes.filter(user=user).exists()
+    #         data['is_liked'] = user == user_has_liked.user
+    #     else:
+    #         data['is_liked'] = False
+    #
+    #     return data
 
 
 class ReelsSerializer(ModelSerializer):
@@ -135,15 +139,24 @@ class CommentSerializer(ModelSerializer):
             post_id.save()
             return {'message ': 'You have successfully commented'}
         if reel_id:
-            reel_comment = Comment.objects.create(user=user, reels=reel_id)
+            reel_comment = Comment.objects.create(user=user, reels=reel_id, comments=comment)
             reel_id.reels_comments.add(reel_comment)
             reel_id.save()
             return {'message ': 'You have successfully commented'}
 
     def to_representation(self, instance):
-        if isinstance(instance, dict):
-            return instance
-        return super().to_representation(instance)
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        user = request.user
+
+        for like in instance.comment_likes.all():
+            if user == like.user:
+                data['is_liked'] = True
+                break
+        else:
+            data['is_liked'] = False
+
+        return data
 
 
 class HighlightSerializer(ModelSerializer):
@@ -154,8 +167,22 @@ class HighlightSerializer(ModelSerializer):
         fields = '__all__'
         read_only_fields = ('id', 'created_at', 'updated_at')
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        user = request.user
 
-class PostLikeSerializer(ModelSerializer):  # noqa
+        for like in instance.highlight_likes.all():
+            if user == like.user:
+                data['is_liked'] = True
+                break
+        else:
+            data['is_liked'] = False
+
+        return data
+
+
+class PostLikeSerializer(ModelSerializer):
     post = PrimaryKeyRelatedField(queryset=Post.objects.all())
     user = HiddenField(default=CurrentUserDefault())
 
@@ -184,7 +211,7 @@ class PostLikeSerializer(ModelSerializer):  # noqa
         return super().to_representation(instance)
 
 
-class StoryLikeSerializer(ModelSerializer):  # noqa
+class StoryLikeSerializer(ModelSerializer):
     user = HiddenField(default=CurrentUserDefault())
 
     class Meta:
@@ -211,7 +238,7 @@ class StoryLikeSerializer(ModelSerializer):  # noqa
         return super().to_representation(instance)
 
 
-class ReelsLikeSerializer(ModelSerializer):  # noqa
+class ReelsLikeSerializer(ModelSerializer):
     user = HiddenField(default=CurrentUserDefault())
 
     class Meta:
@@ -290,18 +317,6 @@ class HighlightLikeSerializer(ModelSerializer):  # noqa
         if isinstance(instance, dict):
             return instance
         return super().to_representation(instance)
-
-    # def to_representation(self, instance):
-    #     data = super().to_representation(instance)
-    #     request = self.context.get('request')
-    #     user = request.user.username
-    #     for like in data.get("likes"):
-    #         if user == like:
-    #             data['is_liked'] = True
-    #             break
-    #     else:
-    #         data['is_liked'] = False
-    #     return data
 
 
 class ShareSerializer(ModelSerializer):

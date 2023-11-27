@@ -179,9 +179,15 @@ class Notification(BaseModel):
     message = CharField(max_length=77, blank=True)
     is_seen = BooleanField(default=False)
     date = DateTimeField(auto_now_add=True)
-    reel_like_notification = ForeignKey('content.ReelsLike', CASCADE, related_name='notification_reel_like', blank=True, null=True)
-    comment_notification = ForeignKey('content.Comment', CASCADE, related_name='notification_comment', blank=True, null=True)
-    comment_like_notification = ForeignKey('content.CommentLike', CASCADE, related_name='notification_comment_like', blank=True, null=True)
-    story_like_notification = ForeignKey('content.StoryLike', CASCADE, related_name='notification_story_like', blank=True, null=True)
-    post_like_notification = ForeignKey('content.PostLike', CASCADE, related_name='notification_post_like', blank=True, null=True)
-    followers_notification = ForeignKey('users.UserProfile', CASCADE, related_name='notification_followers', blank=True, null=True)
+    reel_like_notification = ForeignKey('content.ReelsLike', CASCADE, related_name='notification_reel_like', blank=True,
+                                        null=True)
+    comment_notification = ForeignKey('content.Comment', CASCADE, related_name='notification_comment', blank=True,
+                                      null=True)
+    comment_like_notification = ForeignKey('content.CommentLike', CASCADE, related_name='notification_comment_like',
+                                           blank=True, null=True)
+    story_like_notification = ForeignKey('content.StoryLike', CASCADE, related_name='notification_story_like',
+                                         blank=True, null=True)
+    post_like_notification = ForeignKey('content.PostLike', CASCADE, related_name='notification_post_like', blank=True,
+                                        null=True)
+    followers_notification = ForeignKey('users.UserProfile', CASCADE, related_name='notification_followers', blank=True,
+                                        null=True)
