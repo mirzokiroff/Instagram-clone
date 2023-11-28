@@ -74,7 +74,7 @@ class ReelsSerializer(ModelSerializer):
         read_only_fields = ('created_at', 'updated_at', 'likes', 'comments', 'id', 'user')
 
     def to_representation(self, instance):
-        data = super().to_representation(instance)
+        data = super().to_representation(instance)  # noqa
         request = self.context.get('request')
         user = request.user
 
@@ -98,7 +98,7 @@ class StorySerializer(ModelSerializer):
         read_only_fields = ('id', 'viewers', 'created_at', 'updated_at', 'user', 'likes')
 
     def to_representation(self, instance):
-        data = super().to_representation(instance)
+        data = super().to_representation(instance)  # noqa
         request = self.context.get('request')
         user = request.user
 
@@ -141,7 +141,7 @@ class CommentSerializer(ModelSerializer):
             return {'message ': 'You have successfully commented'}
 
     def to_representation(self, instance):
-        data = super().to_representation(instance)
+        data = super().to_representation(instance)  # noqa
         request = self.context.get('request')
         user = request.user
 
@@ -164,7 +164,7 @@ class HighlightSerializer(ModelSerializer):
         read_only_fields = ('id', 'created_at', 'updated_at')
 
     def to_representation(self, instance):
-        data = super().to_representation(instance)
+        data = super().to_representation(instance)  # noqa
         request = self.context.get('request')
         user = request.user
 
@@ -333,7 +333,7 @@ class ShareSerializer(ModelSerializer):
 
         if non_empty_count != 1:
             raise ValidationError(
-                "You must specify only one of post_shared_to, reels_shared_to, story_shared_to, or highlight_shared_to.")
+                "You must specify only one of post_shared_to, reels_shared_to, story_shared_to, or highlight_shared_to")
 
         return data
 

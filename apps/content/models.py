@@ -1,6 +1,6 @@
 from django.core.validators import FileExtensionValidator
 from django.db.models import Model, ForeignKey, ManyToManyField, DateTimeField, CharField, TextField, FileField, \
-    BooleanField, IntegerField
+    BooleanField
 from django.db.models import CASCADE
 
 from conf import settings
@@ -110,7 +110,7 @@ class Highlight(BaseModel):
     highlight = ForeignKey('content.Story', CASCADE, related_name='highlight')
 
     def __str__(self):
-        return self.user.username
+        return self.user.username  # noqa
 
     @property
     def get_numbers_of_likes(self):
@@ -128,7 +128,7 @@ class PostLike(BaseModel):
     post = ForeignKey('content.Post', CASCADE, related_name='post_likes')
 
     def __str__(self):
-        return 'Like: ' + self.user.username
+        return 'Like: ' + self.user.username  # noqa
 
 
 class StoryLike(BaseModel):
@@ -136,7 +136,7 @@ class StoryLike(BaseModel):
     story = ForeignKey('content.Story', CASCADE, related_name='story_likes')
 
     def __str__(self):
-        return 'Like: ' + self.user.username
+        return 'Like: ' + self.user.username  # noqa
 
 
 class CommentLike(BaseModel):
@@ -144,7 +144,7 @@ class CommentLike(BaseModel):
     comment = ForeignKey('content.Comment', CASCADE, related_name='comment_likes')
 
     def __str__(self):
-        return 'Like: ' + self.user.username
+        return 'Like: ' + self.user.username  # noqa
 
 
 class ReelsLike(BaseModel):
@@ -152,7 +152,7 @@ class ReelsLike(BaseModel):
     reels = ForeignKey('content.Reels', CASCADE, related_name='reels_likes')
 
     def __str__(self):
-        return 'Like: ' + self.user.username
+        return 'Like: ' + self.user.username  # noqa
 
 
 class HighlightLike(BaseModel):
@@ -160,7 +160,7 @@ class HighlightLike(BaseModel):
     highlight = ForeignKey('content.Highlight', CASCADE, related_name='highlight_likes')
 
     def __str__(self):
-        return 'Like: ' + self.user.username
+        return 'Like: ' + self.user.username  # noqa
 
 
 class Share(BaseModel):

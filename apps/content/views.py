@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.utils.decorators import method_decorator
 from drf_yasg import utils, openapi
 from rest_framework import status
@@ -131,3 +133,14 @@ class NotificationViewSet(ListAPIView):
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
 
+    def create_notification(sender, instance, created, **kwargs):
+        if created:
+            notification = Notification.objects.create(
+                user=instance.user,
+                sender=instance.user,
+                message='You have liked a reel',
+                is_seen=False,
+                date=datetime.datetime.now(),
+                reel_like_notification=instance,
+            )
+            notification.save()
