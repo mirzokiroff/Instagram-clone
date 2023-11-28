@@ -246,6 +246,14 @@ class ReelsLikeSerializer(ModelSerializer):
         user: UserProfile = validated_data['user']
         reels = validated_data['reels']
         like = reels.reels_likes.filter(user=user).first()
+
+        Notification.objects.create(
+            user=reels.user,
+            sender=user,
+            message=f"{user.username} liked the reels you posted.",
+            reel_like_notification=reels,
+        )
+
         if like:
             like.delete()
             return {'message ': 'You have unliked the reel'}

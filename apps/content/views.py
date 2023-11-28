@@ -132,15 +132,3 @@ class NotificationViewSet(ListAPIView):
     queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
-
-    def create_notification(sender, instance, created, **kwargs):
-        if created:
-            notification = Notification.objects.create(
-                user=instance.user,
-                sender=instance.user,
-                message='You have liked a reel',
-                is_seen=False,
-                date=datetime.datetime.now(),
-                reel_like_notification=instance,
-            )
-            notification.save()
