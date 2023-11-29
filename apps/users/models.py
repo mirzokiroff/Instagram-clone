@@ -96,3 +96,4 @@ class UserSearch(Model):
 
     def __str__(self) -> str:
         return self.search
+
