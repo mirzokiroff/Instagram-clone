@@ -19,12 +19,11 @@ jobs:
           python-version: 3.x
 
       - name: Deploy to server
-        uses: appleboy/ssh-action@master # An action made to control Linux servers
+        uses: appleboy/ssh-action@main # An action made to control Linux servers
         with: # We set all our secrets here for the action, these won't be shown in the action logs 
           host: 51.20.69.181
           username: ubuntu
-          password: ${{ secrets.SERVER_PASSWORD }}
-          key: ${{ secrets.KEY }}
+          key: '-----BEGIN OPENSSH PRIVATE KEY-----b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZWQyNTUxOQAAACAZnLgowzlvlUUxia2QZdteIwEhvwNIDYJyDxs9My8+AgAAAIiWosU9lqLFPQAAAAtzc2gtZWQyNTUxOQAAACAZnLgowzlvlUUxia2QZdteIwEhvwNIDYJyDxs9My8+AgAAAEAwUQIBATAFBgMrZXAEIgQgW3yTX4FhDzkdzR6HTOxo1xmcuCjDOW+VRTGJrZBl214jASG/A0gNgnIPGz0zLz4CAAAAAAECAwQF-----END OPENSSH PRIVATE KEY-----'
           # port: ${{ secrets.PORT }}
           script: |
             cd /var/www/mirzokiroff/Instagram-clone
