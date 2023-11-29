@@ -247,13 +247,6 @@ class ReelsLikeSerializer(ModelSerializer):
         reels = validated_data['reels']
         like = reels.reels_likes.filter(user=user).first()
 
-        Notification.objects.create(
-            user=reels.user,
-            sender=user,
-            message=f"{user.username} liked the reels you posted.",
-            reel_like_notification=reels,
-        )
-
         if like:
             like.delete()
             return {'message ': 'You have unliked the reel'}
@@ -261,12 +254,15 @@ class ReelsLikeSerializer(ModelSerializer):
             reel_like = ReelsLike.objects.create(user=user, reels=reels)
             reels.reels_likes.add(reel_like)
             reels.save()
-            return {'message ': 'You have liked the reel'}
+            reels.reels_likes.add(user)
+            message = 'You have liked the reel'
 
-    def to_representation(self, instance):
-        if isinstance(instance, dict):
-            return instance
-        return super().to_representation(instance)
+            # Create notification
+            sender = user.username  # Assuming UserProfile is related to your user model
+            Notification.objects.create(user=reels.user, sender=sender, message=f'{sender.username} liked your reel',
+                                        reel_like_notification=reels)
+
+        return {'message': message}
 
 
 class CommentLikeSerializer(ModelSerializer):

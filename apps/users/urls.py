@@ -1,6 +1,6 @@
 from django.urls import path, include
 
-from .views import UserDetailView, AccountViewSet, RegisterView, LoginView, FollowersView, FollowersListAPIVIew, \
+from .views import RegisterView, LoginView, FollowersView, FollowersListAPIVIew, \
     FollowListCreateAPIVIew, ProfileRetrieveUpdateDestroyAPIView, SignInWithOauth2APIView, SearchHistoryView, \
     SearchUserView
 from rest_framework.routers import DefaultRouter
@@ -27,6 +27,6 @@ urlpatterns = [
 
     path('profile', ProfileRetrieveUpdateDestroyAPIView.as_view(), name='profile_retrieve_update_destroy_api'),
 
-    path("search-history/", SearchHistoryView.as_view(), name="searchs"),
+    path("search-history/", SearchHistoryView.as_view(), name="searches"),
     path("search/<str:username>/", SearchUserView.as_view(), name="user_search"),
 ]

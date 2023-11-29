@@ -1,7 +1,7 @@
 from django.http import Http404
 from rest_framework.exceptions import NotAuthenticated, PermissionDenied, ValidationError
 from rest_framework.generics import ListCreateAPIView, ListAPIView, \
-    RetrieveUpdateDestroyAPIView, CreateAPIView, RetrieveAPIView
+    RetrieveUpdateDestroyAPIView, CreateAPIView, RetrieveAPIView, DestroyAPIView
 from rest_framework.parsers import MultiPartParser
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
@@ -181,7 +181,7 @@ class SearchUserView(APIView):
 
 
 class SearchHistoryView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
 
     def get(self, request, *args, **kwargs):
         queryset = UserSearch.objects.filter(user=request.user)

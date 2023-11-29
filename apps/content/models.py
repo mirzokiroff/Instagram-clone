@@ -175,7 +175,7 @@ class Share(BaseModel):
 
 class Notification(BaseModel):
     user = ForeignKey(settings.AUTH_USER_MODEL, CASCADE, related_name='notification_to_user')
-    sender = ForeignKey('users.UserProfile', CASCADE, related_name='notification_from_user')
+    sender = ForeignKey(settings.AUTH_USER_MODEL, CASCADE, related_name='notification_from_user')
     message = CharField(max_length=77, blank=True)
     is_seen = BooleanField(default=False)
     date = DateTimeField(auto_now_add=True)

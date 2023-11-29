@@ -1,9 +1,8 @@
 from django.contrib.auth.hashers import make_password
-from django.db.models import Model, CharField, TextField, URLField, ManyToManyField, ImageField, \
+from django.core.validators import FileExtensionValidator
+from django.db.models import Model, CharField, TextField, URLField, ManyToManyField, \
     BooleanField, EmailField, ForeignKey, CASCADE, DateTimeField, FileField
 from django.contrib.auth.models import AbstractUser, UserManager
-
-from shared.models import unique_id
 
 
 # Create your models here.
@@ -44,8 +43,8 @@ class UserProfile(AbstractUser):
                        blank=True)
     bio = TextField(max_length=255, blank=True, null=True)
     social_links = URLField(max_length=222, null=True, blank=True, default='https://www.instagram.com')
-    image = FileField(upload_to='profile/',
-                      default='https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg')
+    image = FileField(upload_to='profile/', validators=[FileExtensionValidator(['jpg', 'png'])],
+                      default="profile/img.png")
     followers = ManyToManyField(to='self', related_name='my_followers', symmetrical=False)
     following = ManyToManyField(to='self', related_name='my_following', symmetrical=False)
     likes = ManyToManyField(to='self', related_name='my_likes', symmetrical=False)
