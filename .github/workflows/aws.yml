@@ -1,0 +1,33 @@
+name: InstaZammak
+
+on:
+  push:
+    branches: [ "main" ]
+
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@master # An action made to control Linux servers
+        with: # We set all our secrets here for the action, these won't be shown in the action logs 
+          host: 51.20.69.181
+          username: ubuntu
+          password: ${{ secrets.SERVER_PASSWORD }}
+          key: ${{ secrets.KEY }}
+          # port: ${{ secrets.PORT }}
+          script: |
+            cd /var/www/mirzokiroff/Instagram-clone
+            git pull
+            source venv/bin/activate
+            pip install --upgrade -r requirements.txt
