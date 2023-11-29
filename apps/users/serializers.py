@@ -147,4 +147,4 @@ class SignInWithOauth2Serializer(Serializer):
 class SearchUserSerializer(ModelSerializer):
     class Meta:
         model = UserSearch
-        fields = ['search']
+        fields = ['id', 'search']

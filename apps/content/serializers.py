@@ -254,15 +254,7 @@ class ReelsLikeSerializer(ModelSerializer):
             reel_like = ReelsLike.objects.create(user=user, reels=reels)
             reels.reels_likes.add(reel_like)
             reels.save()
-            reels.reels_likes.add(user)
-            message = 'You have liked the reel'
-
-            # Create notification
-            sender = user.username  # Assuming UserProfile is related to your user model
-            Notification.objects.create(user=reels.user, sender=sender, message=f'{sender.username} liked your reel',
-                                        reel_like_notification=reels)
-
-        return {'message': message}
+            return {'message ': 'You have liked the reel'}
 
 
 class CommentLikeSerializer(ModelSerializer):

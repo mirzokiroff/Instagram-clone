@@ -2,7 +2,7 @@ from django.urls import path, include
 
 from .views import RegisterView, LoginView, FollowersView, FollowersListAPIVIew, \
     FollowListCreateAPIVIew, ProfileRetrieveUpdateDestroyAPIView, SignInWithOauth2APIView, SearchHistoryView, \
-    SearchUserView
+    SearchUserView, SearchHistoryDeleteDestroyView
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
@@ -29,4 +29,5 @@ urlpatterns = [
 
     path("search-history/", SearchHistoryView.as_view(), name="searches"),
     path("search/<str:username>/", SearchUserView.as_view(), name="user_search"),
+    path("search-history/<int:pk>/", SearchHistoryDeleteDestroyView.as_view(), name="search-delete")
 ]
