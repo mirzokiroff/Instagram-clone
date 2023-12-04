@@ -87,15 +87,23 @@ class Story(BaseModel):
     user = ForeignKey(settings.AUTH_USER_MODEL, CASCADE, related_name='story_user')
     story = FileField(upload_to='story/', validators=[FileExtensionValidator(['mp4', 'jpg', 'png', 'mov'])])
     mention = ForeignKey('users.UserProfile', CASCADE, related_name="mentioned_users", null=True, blank=True)
-    # viewer = ForeignKey('users.UserProfile', CASCADE, related_name='story_viewers')
+    viewer = ForeignKey('users.UserProfile', CASCADE, related_name='story_viewers')
     date = DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.story
 
-    @property
-    def get_number_of_viewers(self):
-        return self.story_view.count()
+    def get_viewers_info(self):
+        viewers_info = []
+        for viewer_relation in self.story_view.all():
+            viewer = viewer_relation
+            viewer_info = {
+                'username': viewer.user,
+                'full_name': viewer.get_full_name(),
+                'avatar': viewer.user if viewer.userprofile.avatar else None,
+            }
+            viewers_info.append(viewer_info)
+        return viewers_info
 
     @property
     def get_number_of_likes(self):
@@ -118,6 +126,7 @@ class Highlight(BaseModel):
 
 
 class Viewers(BaseModel):
+    user = ForeignKey(settings.AUTH_USER_MODEL, CASCADE, related_name='user_view')
     post = ForeignKey('content.Post', CASCADE, related_name='post_view')
     reel = ForeignKey('content.Reels', CASCADE, related_name='reel_view')
     story = ForeignKey('content.Story', CASCADE, related_name='story_view')

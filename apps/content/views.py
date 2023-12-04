@@ -1,8 +1,7 @@
-from datetime import datetime
-
 from django.utils.decorators import method_decorator
 from drf_yasg import utils, openapi
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.generics import ListCreateAPIView, DestroyAPIView, ListAPIView
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
@@ -53,6 +52,12 @@ class StoryViewSet(ModelViewSet):
     parser_classes = [MultiPartParser]
     permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
     http_method_names = ('get', 'post', 'delete')
+
+    # @action(detail=True, methods=['get'])
+    # def story_viewers_count(self, request, pk=None):
+    #     story = self.get_object()
+    #     viewers_count = story.get_number_of_viewers()
+    #     return Response({'viewers_count': viewers_count})
 
 
 class CommentViewSet(ModelViewSet):

@@ -95,7 +95,7 @@ class StorySerializer(ModelSerializer):
     class Meta:
         model = Story
         fields = '__all__'
-        read_only_fields = ('id', 'viewers', 'created_at', 'updated_at', 'user', 'likes')
+        read_only_fields = ('id', 'viewers', 'created_at', 'updated_at', 'user', 'likes', 'viewer')
 
     def to_representation(self, instance):
         data = super().to_representation(instance)  # noqa
