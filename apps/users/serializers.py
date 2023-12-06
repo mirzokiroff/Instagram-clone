@@ -1,8 +1,11 @@
 from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import ModelSerializer, Serializer
+
+from content.models import Post
 from users.models import UserProfile, UserSearch
-from rest_framework.fields import IntegerField, DateTimeField, HiddenField, CurrentUserDefault, CharField
-from rest_framework.relations import SlugRelatedField
+from rest_framework.fields import IntegerField, DateTimeField, HiddenField, CurrentUserDefault, CharField, \
+    SerializerMethodField, ReadOnlyField
+from rest_framework.relations import SlugRelatedField, PrimaryKeyRelatedField
 
 from users.oauth2 import oauth2_sign_in
 
@@ -14,6 +17,11 @@ class UserProfileSerializer(ModelSerializer):
     following = IntegerField(source='following.count', read_only=True)
     followers = IntegerField(source='followers.count', read_only=True)
 
+    user_posts = ReadOnlyField(source='user_posts.values_list', read_only=True)
+    user_reels = ReadOnlyField(source='user_reels.values_list', read_only=True)
+    user_stories = ReadOnlyField(source='user_stories.values_list', read_only=True)
+    user_highlights = ReadOnlyField(source='user_highlights.values_list', read_only=True)
+
     # likes = IntegerField(source='likes.count', read_only=True)
 
     class Meta:
@@ -22,8 +30,21 @@ class UserProfileSerializer(ModelSerializer):
                    'password', 'email']
 
     def to_representation(self, instance):
-        data = super().to_representation(instance)  # noqa
+        data = super().to_representation(instance)
         data['image'] = instance.avatar
+
+        user_posts = instance.user_posts.values_list('id', flat=True)
+        data['user_posts'] = [str(post_id) for post_id in user_posts]
+
+        user_reels = instance.user_reels.values_list('id', flat=True)
+        data['user_reels'] = [str(reel_id) for reel_id in user_reels]
+
+        user_stories = instance.user_stories.values_list('id', flat=True)
+        data['user_stories'] = [str(story_id) for story_id in user_stories]
+
+        user_highlights = instance.user_highlights.values_list('id', flat=True)
+        data['user_highlights'] = [str(highlight_id) for highlight_id in user_highlights]
+
         return data
 
 
@@ -148,3 +169,7 @@ class SearchUserSerializer(ModelSerializer):
     class Meta:
         model = UserSearch
         fields = ['id', 'search']
+
+
+class EmailVerySerializer(Serializer):
+    code = CharField(max_length=5)

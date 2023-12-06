@@ -87,7 +87,7 @@ class Story(BaseModel):
     user = ForeignKey(settings.AUTH_USER_MODEL, CASCADE, related_name='story_user')
     story = FileField(upload_to='story/', validators=[FileExtensionValidator(['mp4', 'jpg', 'png', 'mov'])])
     mention = ForeignKey('users.UserProfile', CASCADE, related_name="mentioned_users", null=True, blank=True)
-    viewer = ForeignKey('users.UserProfile', CASCADE, related_name='story_viewers')
+    viewer = ForeignKey('users.UserProfile', CASCADE, related_name='story_viewers', null=True, blank=True)
     date = DateTimeField(auto_now_add=True)
 
     def __str__(self):

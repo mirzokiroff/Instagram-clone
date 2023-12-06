@@ -1,15 +1,18 @@
 from django.http import Http404
 from rest_framework.exceptions import NotAuthenticated, PermissionDenied, ValidationError
 from rest_framework.generics import ListCreateAPIView, ListAPIView, \
-    RetrieveUpdateDestroyAPIView, CreateAPIView, RetrieveAPIView, DestroyAPIView
+    RetrieveUpdateDestroyAPIView, CreateAPIView, RetrieveAPIView
 from rest_framework.parsers import MultiPartParser
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from conf import settings
+from django.core.cache import cache
 from .oauth2 import oauth2_sign_in
 from .serializers import UserProfileSerializer, UserSerializer, RegisterSerializer, LoginSerializer, \
     UserFollowingModelSerializer, UserViewProfileModelSerializer, FollowersSerializer, SignInWithOauth2Serializer, \
-    SearchUserSerializer
+    SearchUserSerializer, EmailVerySerializer
 from .models import UserProfile, UserSearch
 from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 from rest_framework import status
@@ -79,10 +82,11 @@ class FollowersView(RetrieveAPIView):
         return user_profile
 
 
-class ProfileRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+class ProfileUpdateAPIView(RetrieveUpdateDestroyAPIView):
     serializer_class = UserProfileSerializer
     parser_classes = [MultiPartParser]
     http_method_names = ('get', 'patch')
+    permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
 
     def get_object(self):
         user = self.request.user
@@ -92,14 +96,6 @@ class ProfileRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
         if user:
             return user.first()
         raise Http404
-
-    def destroy(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            if request.user != self.get_object():
-                raise PermissionDenied()
-            self.perform_destroy(request.user)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        raise NotAuthenticated()
 
     def update(self, request, *args, **kwargs):
         if request.user.is_authenticated:
@@ -203,3 +199,17 @@ class SearchHistoryDeleteDestroyView(APIView):
             return Response({"error": "Search history entry not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class EmailSignUp(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = EmailVerySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        code = serializer.data.get('code')
+        if code and (email := cache.get(f'{settings.CACHE_KEY_PREFIX}:{code}')):
+            if user := cache.get(f'user:{email}'):
+                cache.delete(f'{settings.CACHE_KEY_PREFIX}:{code}')
+                cache.delete(f'user:{email}')
+                user.save()
+                return Response({"message": 'User is successfully activated'})
+        return Response({"message": 'Code is expired or invalid'})

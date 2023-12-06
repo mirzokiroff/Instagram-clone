@@ -48,6 +48,10 @@ class UserProfile(AbstractUser):
     following = ManyToManyField(to='self', related_name='my_following', symmetrical=False)
     likes = ManyToManyField(to='self', related_name='my_likes', symmetrical=False)
     is_public = BooleanField(default=True)
+    user_posts = ManyToManyField('content.Post', related_name='users_posts', null=True, blank=True)
+    user_reels = ManyToManyField('content.Reels', related_name='users_reels', null=True, blank=True)
+    user_stories = ManyToManyField('content.Story', related_name='users_stories', null=True, blank=True)
+    user_highlights = ManyToManyField('content.Highlight', related_name='users_highlights', null=True, blank=True)
 
     email = EmailField(max_length=222, unique=True)
 
