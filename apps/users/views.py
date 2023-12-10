@@ -1,24 +1,24 @@
+from django.contrib.auth import authenticate
 from django.http import Http404
+from django.utils.text import slugify
+from rest_framework import status
 from rest_framework.exceptions import NotAuthenticated, PermissionDenied, ValidationError
 from rest_framework.generics import ListCreateAPIView, ListAPIView, \
     RetrieveUpdateDestroyAPIView, CreateAPIView, RetrieveAPIView
 from rest_framework.parsers import MultiPartParser
+from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
+from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from conf import settings
-from django.core.cache import cache
-from .oauth2 import oauth2_sign_in
-from .serializers import UserProfileSerializer, UserSerializer, RegisterSerializer, LoginSerializer, \
-    UserFollowingModelSerializer, UserViewProfileModelSerializer, FollowersSerializer, SignInWithOauth2Serializer, \
-    SearchUserSerializer, EmailVerySerializer
-from .models import UserProfile, UserSearch
-from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
-from rest_framework import status
-from rest_framework.response import Response
-from django.contrib.auth import authenticate
-from django.utils.text import slugify
+from content.models import Post
+from content.serializers import PostSerializer
+from users.models import UserProfile, UserSearch
+from users.oauth2 import oauth2_sign_in
+from users.serializers import UserProfileSerializer, RegisterSerializer, LoginSerializer, \
+    UserFollowingModelSerializer, UserViewProfileModelSerializer, FollowersFollowingSerializer, \
+    SignInWithOauth2Serializer, \
+    SearchUserSerializer
 
 
 class IsAuthenticatedAndOwner(BasePermission):
@@ -26,23 +26,6 @@ class IsAuthenticatedAndOwner(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         return obj.user == request.user
-
-
-class AccountViewSet(ModelViewSet):
-    queryset = UserProfile.objects.all()
-    serializer_class = UserProfileSerializer
-    permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
-    parser_classes = [MultiPartParser, ]
-    http_method_names = ('get', 'patch')
-
-
-class UserDetailView(ModelViewSet):
-    queryset = UserProfile.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser]
-    lookup_field = 'pk'
-    http_method_names = ('patch',)
 
 
 class FollowListCreateAPIVIew(ListCreateAPIView):
@@ -72,14 +55,38 @@ class FollowersListAPIVIew(ListAPIView):
         return self.request.user.followers.all()
 
 
-class FollowersView(RetrieveAPIView):
-    serializer_class = FollowersSerializer
+class FollowersFollowingView(RetrieveAPIView):
+    serializer_class = FollowersFollowingSerializer
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
         username = self.kwargs['username']
         user_profile = UserProfile.objects.get(username=username)
         return user_profile
+
+
+class FollowersFollowingDetailView(ListAPIView):
+    serializer_class = PostSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Get the authenticated user's profile
+        user_profile = self.request.user
+
+        # Check if the authenticated user has a profile
+        if user_profile:
+            # Get the user's followers and following
+            followers = user_profile.followers.all()
+            following = user_profile.following.all()
+
+            # Combine followers and following to get a list of users
+            users_to_include = list(followers) + list(following) + [user_profile]
+
+            # Get posts from the users in the combined list
+            return Post.objects.filter(user__in=users_to_include)
+
+        else:
+            raise Http404("User profile not found.")
 
 
 class ProfileUpdateAPIView(RetrieveUpdateDestroyAPIView):
@@ -199,17 +206,3 @@ class SearchHistoryDeleteDestroyView(APIView):
             return Response({"error": "Search history entry not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class EmailSignUp(APIView):
-    def post(self, request, *args, **kwargs):
-        serializer = EmailVerySerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        code = serializer.data.get('code')
-        if code and (email := cache.get(f'{settings.CACHE_KEY_PREFIX}:{code}')):
-            if user := cache.get(f'user:{email}'):
-                cache.delete(f'{settings.CACHE_KEY_PREFIX}:{code}')
-                cache.delete(f'user:{email}')
-                user.save()
-                return Response({"message": 'User is successfully activated'})
-        return Response({"message": 'Code is expired or invalid'})

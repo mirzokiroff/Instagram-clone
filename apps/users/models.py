@@ -1,8 +1,8 @@
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.core.validators import FileExtensionValidator
 from django.db.models import Model, CharField, TextField, URLField, ManyToManyField, \
     BooleanField, EmailField, ForeignKey, CASCADE, DateTimeField, FileField
-from django.contrib.auth.models import AbstractUser, UserManager
 
 
 # Create your models here.
@@ -99,4 +99,3 @@ class UserSearch(Model):
 
     def __str__(self) -> str:
         return self.search
-

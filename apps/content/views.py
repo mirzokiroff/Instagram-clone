@@ -1,18 +1,18 @@
 from django.utils.decorators import method_decorator
 from drf_yasg import utils, openapi
 from rest_framework import status
-from rest_framework.decorators import action
 from rest_framework.generics import ListCreateAPIView, DestroyAPIView, ListAPIView
 from rest_framework.parsers import MultiPartParser
-from rest_framework.response import Response
-
-from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated, AllowAny, BasePermission
+from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
+
+from content.models import ReelsLike, Post, Reels, Story, StoryLike, PostLike, Highlight, Comment, CommentLike, \
+    HighlightLike, Share, Notification
 from content.serializers import PostSerializer, StorySerializer, StoryLikeSerializer, \
     CommentSerializer, HighlightSerializer, ReelsSerializer, PostLikeSerializer, ReelsLikeSerializer, \
     CommentLikeSerializer, HighlightLikeSerializer, ShareSerializer, NotificationSerializer
-from content.models import ReelsLike, Post, Reels, Story, StoryLike, PostLike, Highlight, Comment, CommentLike, \
-    HighlightLike, Share, Notification
+from users.models import UserProfile
 
 
 class IsAuthenticatedAndOwner(BasePermission):
@@ -40,21 +40,8 @@ class PostViewSet(ModelViewSet):
     def perform_create(self, serializer):
         post = serializer.save(user=self.request.user)
 
-        # Add the post ID to user_posts if the post's user ID matches the current user's ID
         if self.request.user.id == post.user.id:
             self.request.user.user_posts.add(post.id)
-
-    @action(detail=True, methods=['delete'])
-    def delete_post(self, request, pk=None):
-        post = self.get_object()
-
-        # Remove the post ID from user_posts if the post's user ID matches the current user's ID
-        if request.user.id == post.user.id:
-            request.user.user_posts.remove(post.id)
-
-        post.delete()
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ReelsViewSet(ModelViewSet):
@@ -67,21 +54,8 @@ class ReelsViewSet(ModelViewSet):
     def perform_create(self, serializer):
         reel = serializer.save(user=self.request.user)
 
-        # Add the post ID to user_posts if the post's user ID matches the current user's ID
         if self.request.user.id == reel.user.id:
             self.request.user.user_reels.add(reel.id)
-
-    @action(detail=True, methods=['delete'])
-    def delete_post(self, request, pk=None):
-        reel = self.get_object()
-
-        # Remove the post ID from user_posts if the post's user ID matches the current user's ID
-        if request.user.id == reel.user.id:
-            request.user.user_reels.remove(reel.id)
-
-        reel.delete()
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class StoryViewSet(ModelViewSet):
@@ -94,21 +68,8 @@ class StoryViewSet(ModelViewSet):
     def perform_create(self, serializer):
         story = serializer.save(user=self.request.user)
 
-        # Add the post ID to user_posts if the post's user ID matches the current user's ID
         if self.request.user.id == story.user.id:
             self.request.user.user_stories.add(story.id)
-
-    @action(detail=True, methods=['delete'])
-    def delete_post(self, request, pk=None):
-        story = self.get_object()
-
-        # Remove the post ID from user_posts if the post's user ID matches the current user's ID
-        if request.user.id == story.user.id:
-            request.user.user_stories.remove(story.id)
-
-        story.delete()
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class CommentViewSet(ModelViewSet):
@@ -149,21 +110,8 @@ class HighlightViewSet(ModelViewSet):
     def perform_create(self, serializer):
         highlight = serializer.save(user=self.request.user)
 
-        # Add the post ID to user_posts if the post's user ID matches the current user's ID
         if self.request.user.id == highlight.user.id:
             self.request.user.user_highlights.add(highlight.id)
-
-    @action(detail=True, methods=['delete'])
-    def delete_post(self, request, pk=None):
-        highlight = self.get_object()
-
-        # Remove the post ID from user_posts if the post's user ID matches the current user's ID
-        if request.user.id == highlight.user.id:
-            request.user.user_highlights.remove(highlight.id)
-
-        highlight.delete()
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class PostLikeViewSet(ListCreateAPIView):

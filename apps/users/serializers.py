@@ -1,12 +1,10 @@
 from rest_framework.exceptions import ValidationError
+from rest_framework.fields import IntegerField, DateTimeField, HiddenField, CurrentUserDefault, CharField, \
+    ReadOnlyField
+from rest_framework.relations import SlugRelatedField
 from rest_framework.serializers import ModelSerializer, Serializer
 
-from content.models import Post
 from users.models import UserProfile, UserSearch
-from rest_framework.fields import IntegerField, DateTimeField, HiddenField, CurrentUserDefault, CharField, \
-    SerializerMethodField, ReadOnlyField
-from rest_framework.relations import SlugRelatedField, PrimaryKeyRelatedField
-
 from users.oauth2 import oauth2_sign_in
 
 
@@ -64,19 +62,6 @@ class UserViewProfileModelSerializer(ModelSerializer):
         return data
 
 
-class UserFollowModelSerializer(ModelSerializer):
-    user = HiddenField(default=CurrentUserDefault())
-    followers = UserViewProfileModelSerializer(many=True)
-    following = UserViewProfileModelSerializer(many=True)
-
-    class Meta:
-        model = UserProfile
-        fields = ('following', 'followers', 'user')
-
-    def create(self, validated_data):
-        return super().create(validated_data)
-
-
 class UserFollowingModelSerializer(ModelSerializer):
     user = HiddenField(default=CurrentUserDefault())
     username = SlugRelatedField(queryset=UserProfile.objects.all(), slug_field='username')
@@ -108,7 +93,7 @@ class UserFollowingModelSerializer(ModelSerializer):
         return instance
 
 
-class FollowersSerializer(ModelSerializer):
+class FollowersFollowingSerializer(ModelSerializer):
     user = HiddenField(default=CurrentUserDefault())
     followers = SlugRelatedField(many=True, read_only=True, slug_field='username')
     following = SlugRelatedField(many=True, read_only=True, slug_field='username')
@@ -130,27 +115,18 @@ class FollowersSerializer(ModelSerializer):
         return data
 
 
-class UserSerializer(ModelSerializer):
-    user = HiddenField(default=CurrentUserDefault())
-
-    class Meta:
-        model = UserProfile
-        fields = ['username', 'email', 'password', 'user']
-
-
 class LoginSerializer(ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ['username', 'password']
         username = CharField(max_length=111)
         password = CharField(write_only=True)
-        # confirm_password = CharField(write_only=True)
 
 
 class RegisterSerializer(ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ('username', 'first_name', 'email', 'password')
+        fields = ('username', 'email', 'password')
 
 
 class SignInWithOauth2Serializer(Serializer):
@@ -169,7 +145,3 @@ class SearchUserSerializer(ModelSerializer):
     class Meta:
         model = UserSearch
         fields = ['id', 'search']
-
-
-class EmailVerySerializer(Serializer):
-    code = CharField(max_length=5)

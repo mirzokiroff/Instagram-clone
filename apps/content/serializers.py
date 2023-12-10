@@ -1,9 +1,10 @@
 from collections import OrderedDict
 
 from rest_framework.exceptions import ValidationError
-from rest_framework.fields import HiddenField, CurrentUserDefault, ListField, CharField, SkipField
+from rest_framework.fields import HiddenField, CurrentUserDefault, ListField, CharField, SkipField, ReadOnlyField
 from rest_framework.relations import PrimaryKeyRelatedField, PKOnlyObject
 from rest_framework.serializers import ModelSerializer
+
 from content.models import Media, Post, PostLike, StoryLike, Story, Reels, CommentLike, Highlight, Comment, \
     ReelsLike, file_ext_validator, HighlightLike, Share, Notification
 from users.models import UserProfile
@@ -13,11 +14,12 @@ class PostSerializer(ModelSerializer):
     id = CharField(read_only=True)
     media = ListField(validators=(file_ext_validator,))
     user = HiddenField(default=CurrentUserDefault())
+    username = ReadOnlyField(source='user.username')
 
     class Meta:
         model = Post
         fields = '__all__'
-        read_only_fields = ('created_at', 'updated_at', 'id')
+        read_only_fields = ('username', 'created_at', 'updated_at', 'id')
 
     def create(self, validated_data):
         medias = validated_data.pop('media', [])
@@ -67,6 +69,7 @@ class PostSerializer(ModelSerializer):
 class ReelsSerializer(ModelSerializer):
     id = CharField(read_only=True)
     user = HiddenField(default=CurrentUserDefault())
+    username = ReadOnlyField(source='user.username')
 
     class Meta:
         model = Reels
@@ -91,6 +94,7 @@ class ReelsSerializer(ModelSerializer):
 class StorySerializer(ModelSerializer):
     id = CharField(read_only=True)
     user = HiddenField(default=CurrentUserDefault())
+    username = ReadOnlyField(source='user.username')
 
     class Meta:
         model = Story
@@ -114,6 +118,7 @@ class StorySerializer(ModelSerializer):
 
 class CommentSerializer(ModelSerializer):
     user = HiddenField(default=CurrentUserDefault())
+    username = ReadOnlyField(source='user.username')
 
     class Meta:
         model = Comment
@@ -157,6 +162,7 @@ class CommentSerializer(ModelSerializer):
 
 class HighlightSerializer(ModelSerializer):
     user = HiddenField(default=CurrentUserDefault())
+    username = ReadOnlyField(source='user.username')
 
     class Meta:
         model = Highlight
@@ -181,6 +187,7 @@ class HighlightSerializer(ModelSerializer):
 class PostLikeSerializer(ModelSerializer):
     post = PrimaryKeyRelatedField(queryset=Post.objects.all())
     user = HiddenField(default=CurrentUserDefault())
+    username = ReadOnlyField(source='user.username')
 
     class Meta:
         model = PostLike
@@ -209,6 +216,7 @@ class PostLikeSerializer(ModelSerializer):
 
 class StoryLikeSerializer(ModelSerializer):
     user = HiddenField(default=CurrentUserDefault())
+    username = ReadOnlyField(source='user.username')
 
     class Meta:
         model = StoryLike
@@ -236,6 +244,7 @@ class StoryLikeSerializer(ModelSerializer):
 
 class ReelsLikeSerializer(ModelSerializer):
     user = HiddenField(default=CurrentUserDefault())
+    username = ReadOnlyField(source='user.username')
 
     class Meta:
         model = ReelsLike
@@ -259,6 +268,7 @@ class ReelsLikeSerializer(ModelSerializer):
 
 class CommentLikeSerializer(ModelSerializer):
     user = HiddenField(default=CurrentUserDefault())
+    username = ReadOnlyField(source='user.username')
 
     class Meta:
         model = CommentLike
@@ -286,6 +296,7 @@ class CommentLikeSerializer(ModelSerializer):
 
 class HighlightLikeSerializer(ModelSerializer):  # noqa
     user = HiddenField(default=CurrentUserDefault())
+    username = ReadOnlyField(source='user.username')
 
     class Meta:
         model = HighlightLike
@@ -313,6 +324,7 @@ class HighlightLikeSerializer(ModelSerializer):  # noqa
 
 class ShareSerializer(ModelSerializer):
     user = HiddenField(default=CurrentUserDefault())
+    username = ReadOnlyField(source='user.username')
 
     class Meta:
         model = Share
@@ -336,6 +348,7 @@ class ShareSerializer(ModelSerializer):
 
 class NotificationSerializer(ModelSerializer):
     user = HiddenField(default=CurrentUserDefault())
+    username = ReadOnlyField(source='user.username')
 
     class Meta:
         model = Notification
