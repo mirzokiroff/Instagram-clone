@@ -70,19 +70,14 @@ class FollowersFollowingDetailView(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Get the authenticated user's profile
         user_profile = self.request.user
 
-        # Check if the authenticated user has a profile
         if user_profile:
-            # Get the user's followers and following
             followers = user_profile.followers.all()
             following = user_profile.following.all()
 
-            # Combine followers and following to get a list of users
             users_to_include = list(followers) + list(following) + [user_profile]
 
-            # Get posts from the users in the combined list
             return Post.objects.filter(user__in=users_to_include)
 
         else:
