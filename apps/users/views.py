@@ -166,7 +166,6 @@ class SearchUserView(APIView):
 
     def get(self, request, *args, **kwargs):
         search_query = self.kwargs.get('username')
-        # Use a valid lookup type for filtering (e.g., 'icontains' for case-insensitive containment)
         queryset = UserProfile.objects.filter(username__icontains=search_query)
         serializer = UserProfileSerializer(queryset, many=True)
         search_data = UserSearch.objects.filter(search=search_query, user=request.user)

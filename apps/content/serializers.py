@@ -244,7 +244,6 @@ class StoryLikeSerializer(ModelSerializer):
 
 class ReelsLikeSerializer(ModelSerializer):
     user = HiddenField(default=CurrentUserDefault())
-    username = ReadOnlyField(source='user.username')
 
     class Meta:
         model = ReelsLike
@@ -264,6 +263,11 @@ class ReelsLikeSerializer(ModelSerializer):
             reels.reels_likes.add(reel_like)
             reels.save()
             return {'message ': 'You have liked the reel'}
+
+    def to_representation(self, instance):
+        if isinstance(instance, dict):
+            return instance
+        return super().to_representation(instance)
 
 
 class CommentLikeSerializer(ModelSerializer):
