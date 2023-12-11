@@ -247,6 +247,7 @@ class StoryLikeSerializer(ModelSerializer):
 
 class ReelsLikeSerializer(ModelSerializer):
     user = HiddenField(default=CurrentUserDefault())
+    username = ReadOnlyField(source='user.username')
 
     class Meta:
         model = ReelsLike
