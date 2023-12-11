@@ -66,13 +66,13 @@ class Reels(BaseModel):
 class Comment(BaseModel):
     id = CharField(primary_key=True, max_length=36, default=unique_id)
     user = ForeignKey(settings.AUTH_USER_MODEL, CASCADE, related_name='comment_user')
-    comments = TextField()
+    comment = TextField()
     date = DateTimeField(auto_now_add=True)
     post = ForeignKey('content.Post', CASCADE, related_name='post_comments', null=True, blank=True)
     reels = ForeignKey('content.Reels', CASCADE, related_name='reels_comments', null=True, blank=True)
 
     def __str__(self):
-        return self.comments
+        return self.comment
 
     @property
     def get_number_of_likes(self):

@@ -129,24 +129,27 @@ class CommentSerializer(ModelSerializer):
         user: UserProfile = validated_data['user']
         post_id: Post = validated_data['post']
         reel_id: Reels = validated_data['reels']
-        comment: Comment = validated_data['comments']
+        comment: Comment = validated_data['comment']
 
         if post_id and reel_id:
             return {'error': 'You must specify either "post" or "reels".'}
 
         if post_id:
-            post_comment = Comment.objects.create(user=user, post=post_id, comments=comment)
+            post_comment = Comment.objects.create(user=user, post=post_id, comment=comment)
             post_id.post_comments.add(post_comment)
             post_id.save()
-            return {'message ': 'You have successfully commented'}
+            return {'message ': 'You have successfully commented to the post'}
         if reel_id:
-            reel_comment = Comment.objects.create(user=user, reels=reel_id, comments=comment)
+            reel_comment = Comment.objects.create(user=user, reels=reel_id, comment=comment)
             reel_id.reels_comments.add(reel_comment)
             reel_id.save()
-            return {'message ': 'You have successfully commented'}
+            return {'message ': 'You have successfully commented to the reels'}
 
     def to_representation(self, instance):
-        data = super().to_representation(instance)  # noqa
+        if isinstance(instance, dict):
+            return instance
+
+        data = super().to_representation(instance)
         request = self.context.get('request')
         user = request.user
 
