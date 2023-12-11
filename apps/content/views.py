@@ -12,7 +12,6 @@ from content.models import ReelsLike, Post, Reels, Story, StoryLike, PostLike, H
 from content.serializers import PostSerializer, StorySerializer, StoryLikeSerializer, \
     CommentSerializer, HighlightSerializer, ReelsSerializer, PostLikeSerializer, ReelsLikeSerializer, \
     CommentLikeSerializer, HighlightLikeSerializer, ShareSerializer, NotificationSerializer
-from users.models import UserProfile
 
 
 class IsAuthenticatedAndOwner(BasePermission):
@@ -78,13 +77,6 @@ class CommentViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
     http_method_names = ('get', 'post', 'delete')
 
-    def get_queryset(self):
-        user_id = self.request.user
-        queryset = Comment.objects.all()
-        if user_id:
-            queryset = queryset.filter(user=user_id)
-        return queryset
-
 
 class HighlightViewSet(ModelViewSet):
     queryset = Highlight.objects.all()
@@ -119,11 +111,27 @@ class PostLikeViewSet(ListCreateAPIView):
     serializer_class = PostLikeSerializer
     permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
 
+    def get_queryset(self):
+        current_user = self.request.user
+        queryset = PostLike.objects.all()
+
+        if current_user:
+            queryset = queryset.filter(user=current_user)
+        return queryset
+
 
 class StoryLikeViewSet(ListCreateAPIView):
     queryset = StoryLike.objects.all()
     serializer_class = StoryLikeSerializer
     permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
+
+    def get_queryset(self):
+        current_user = self.request.user
+        queryset = StoryLike.objects.all()
+
+        if current_user:
+            queryset = queryset.filter(user=current_user)
+        return queryset
 
 
 class CommentLikeViewSet(ListCreateAPIView):
@@ -131,17 +139,41 @@ class CommentLikeViewSet(ListCreateAPIView):
     serializer_class = CommentLikeSerializer
     permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
 
+    def get_queryset(self):
+        current_user = self.request.user
+        queryset = CommentLike.objects.all()
+
+        if current_user:
+            queryset = queryset.filter(user=current_user)
+        return queryset
+
 
 class ReelsLikeViewSet(ListCreateAPIView):
     queryset = ReelsLike.objects.all()
     serializer_class = ReelsLikeSerializer
     permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
 
+    def get_queryset(self):
+        current_user = self.request.user
+        queryset = ReelsLike.objects.all()
+
+        if current_user:
+            queryset = queryset.filter(user=current_user)
+        return queryset
+
 
 class HighlightLikeViewSet(ListCreateAPIView):
     queryset = HighlightLike.objects.all()
     serializer_class = HighlightLikeSerializer
     permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
+
+    def get_queryset(self):
+        current_user = self.request.user
+        queryset = HighlightLike.objects.all()
+
+        if current_user:
+            queryset = queryset.filter(user=current_user)
+        return queryset
 
 
 class ShareViewSet(ListCreateAPIView, DestroyAPIView):
