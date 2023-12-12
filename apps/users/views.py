@@ -108,7 +108,6 @@ class ProfileUpdateAPIView(RetrieveUpdateDestroyAPIView):
             serializer = self.get_serializer(instance, data=request.data, partial=partial)
             serializer.is_valid(raise_exception=True)
             self.perform_update(serializer)
-            instance.set_password(instance.password)
             instance.save()
 
             if getattr(instance, '_prefetched_objects_cache', None):
@@ -138,7 +137,7 @@ class LoginView(CreateAPIView):
         password = request.data.get("password")
         # confirm_password = request.data.get("confirm_password")
         user = authenticate(username=username, password=password)  # confirm_password=confirm_password) # noqa
-        if user:
+        if user in UserProfile.objects.all():
             refresh = RefreshToken.for_user(user)
             return Response({"refresh": str(refresh), "access": str(refresh.access_token)})  # noqa
         else:
