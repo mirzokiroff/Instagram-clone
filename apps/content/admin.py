@@ -1,7 +1,8 @@
 from django.contrib import admin
 
 from content.models import Post, PostLike, ReelsLike, Reels, Story, StoryLike, Share, CommentLike, Comment, \
-    HighlightLike, Highlight, Notification, Viewers
+    HighlightLike, Highlight, Viewers
+from notifications.models import Notification
 
 # Register your models here.
 admin.site.register(Post)

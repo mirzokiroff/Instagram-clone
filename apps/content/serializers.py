@@ -1,12 +1,16 @@
 from collections import OrderedDict
+from http.client import HTTPException
 
+from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import HiddenField, CurrentUserDefault, ListField, CharField, SkipField, ReadOnlyField
 from rest_framework.relations import PrimaryKeyRelatedField, PKOnlyObject
+from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer
 
 from content.models import Media, Post, PostLike, StoryLike, Story, Reels, CommentLike, Highlight, Comment, \
-    ReelsLike, file_ext_validator, HighlightLike, Share, Notification
+    ReelsLike, file_ext_validator, HighlightLike, Share
+from notifications.models import Notification
 from users.models import UserProfile
 
 
@@ -54,17 +58,17 @@ class PostSerializer(ModelSerializer):
                 ret[field.field_name] = field.to_representation(attribute)
 
         request = self.context.get('request')
-        user = request.user
-        like_exist = instance.post_likes.exists()
+        user = request.user if request and request.user.is_authenticated else None
 
-        if like_exist:
-            user_has_liked = instance.post_likes.filter(user=user).exists()
-            ret['is_liked'] = user_has_liked
-        else:
-            ret['is_liked'] = False
+        if user:
+            like_exist = instance.post_likes.exists()
+            if like_exist:
+                user_has_liked = instance.post_likes.filter(user=user).exists()
+                ret['is_liked'] = user_has_liked
+            else:
+                ret['is_liked'] = False
 
         return ret
-
 
 class ReelsSerializer(ModelSerializer):
     id = CharField(read_only=True)
@@ -209,6 +213,14 @@ class PostLikeSerializer(ModelSerializer):
             post_like = PostLike.objects.create(user=user, post=post)
             post.post_likes.add(post_like)
             post.save()
+
+            Notification.objects.create(
+                user=post.author,  # or whoever you want to notify
+                content_type='post',
+                object_id=post.id,
+                action='like'
+            )
+
             return {'message': "You have liked the post."}
 
     def to_representation(self, instance):
@@ -353,12 +365,3 @@ class ShareSerializer(ModelSerializer):
 
         return data
 
-
-class NotificationSerializer(ModelSerializer):
-    user = HiddenField(default=CurrentUserDefault())
-    username = ReadOnlyField(source='user.username')
-
-    class Meta:
-        model = Notification
-        fields = '__all__'
-        read_only_fields = ['created_at', 'updated_at', 'user']

@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'users',
     'content',
     'chat',
+    'notifications',
 
     # Third party libraries
     'rest_framework',
