@@ -1,15 +1,12 @@
 from collections import OrderedDict
-from http.client import HTTPException
 
-from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import HiddenField, CurrentUserDefault, ListField, CharField, SkipField, ReadOnlyField
 from rest_framework.relations import PrimaryKeyRelatedField, PKOnlyObject
-from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer
 
 from content.models import Media, Post, PostLike, StoryLike, Story, Reels, CommentLike, Highlight, Comment, \
-    ReelsLike, file_ext_validator, HighlightLike, Share
+    ReelsLike, file_ext_validator, HighlightLike
 from notifications.models import Notification
 from users.models import UserProfile
 
@@ -69,6 +66,7 @@ class PostSerializer(ModelSerializer):
                 ret['is_liked'] = False
 
         return ret
+
 
 class ReelsSerializer(ModelSerializer):
     id = CharField(read_only=True)
@@ -203,23 +201,47 @@ class PostLikeSerializer(ModelSerializer):
 
     def create(self, validated_data):
         user: UserProfile = validated_data['user']
-        # user.liked_post.count()
         post = validated_data['post']
+
         like = post.post_likes.filter(user=user).first()
+        existing_notification = Notification.objects.filter(
+            user=user,
+            content_type='post',
+            object_id=post.id,
+            action='like',
+            description='liked your post'
+        ).first()
+
         if like:
             like.delete()
+
+            Notification.objects.create(
+                user=user,
+                content_type='post',
+                object_id=post.id,
+                action='unlike',
+                description='unliked your post'
+            )
+
             return {'message': "You have unliked the post."}
         else:
             post_like = PostLike.objects.create(user=user, post=post)
             post.post_likes.add(post_like)
             post.save()
 
-            Notification.objects.create(
-                user=post.author,  # or whoever you want to notify
-                content_type='post',
-                object_id=post.id,
-                action='like'
-            )
+            if existing_notification:
+                existing_notification.action = 'update_like'
+                existing_notification.is_read = False
+                existing_notification.description = 'liked your post again'
+                existing_notification.save()
+            else:
+                Notification.objects.create(
+                    user=user,
+                    content_type='post',
+                    object_id=post.id,
+                    action='like',
+                    description='liked your post'
+                )
 
             return {'message': "You have liked the post."}
 
@@ -242,13 +264,46 @@ class StoryLikeSerializer(ModelSerializer):
         user: UserProfile = validated_data['user']
         story = validated_data['story']
         like = story.story_likes.filter(user=user).first()
+
+        existing_notification = Notification.objects.filter(
+            user=user,
+            content_type='story',
+            object_id=story.id,
+            action='like',
+            description='liked your story'
+        ).first()
+
         if like:
             like.delete()
+
+            Notification.objects.create(
+                user=user,
+                content_type='story',
+                object_id=story.id,
+                action='unlike',
+                description='unliked your story'
+            )
+
             return {'message ': 'You have unliked the story'}
         else:
             story_like = StoryLike.objects.create(user=user, story=story)
             story.story_likes.add(story_like)
             story.save()
+
+            if existing_notification:
+                existing_notification.action = 'update_like'
+                existing_notification.is_read = False
+                existing_notification.description = 'liked your story again'
+                existing_notification.save()
+            else:
+                Notification.objects.create(
+                    user=user,
+                    content_type='story',
+                    object_id=story.id,
+                    action='like',
+                    description='liked your story'
+                )
+
             return {'message ': 'You have liked the story'}
 
     def to_representation(self, instance):
@@ -271,13 +326,45 @@ class ReelsLikeSerializer(ModelSerializer):
         reels = validated_data['reels']
         like = reels.reels_likes.filter(user=user).first()
 
+        existing_notification = Notification.objects.filter(
+            user=user,
+            content_type='reels',
+            object_id=reels.id,
+            action='like',
+            description='liked your reel'
+        ).first()
+
         if like:
             like.delete()
+
+            Notification.objects.create(
+                user=user,
+                content_type='reels',
+                object_id=reels.id,
+                action='unlike',
+                description='unliked your reel'
+            )
+
             return {'message ': 'You have unliked the reel'}
         else:
             reel_like = ReelsLike.objects.create(user=user, reels=reels)
             reels.reels_likes.add(reel_like)
             reels.save()
+
+            if existing_notification:
+                existing_notification.action = 'update_like'
+                existing_notification.is_read = False
+                existing_notification.description = 'liked your reel again'
+                existing_notification.save()
+            else:
+                Notification.objects.create(
+                    user=user,
+                    content_type='reels',
+                    object_id=reels.id,
+                    action='like',
+                    description='liked your reel'
+                )
+
             return {'message ': 'You have liked the reel'}
 
     def to_representation(self, instance):
@@ -299,13 +386,47 @@ class CommentLikeSerializer(ModelSerializer):
         user: UserProfile = validated_data['user']
         comment = validated_data['comment']
         like = comment.comment_likes.filter(user=user).first()
+
+        existing_notification = Notification.objects.filter(
+            user=user,
+            content_type='comment_like',
+            object_id=comment.id,
+            action='like',
+            description='liked your comment'
+        ).first()
+
         if like:
             like.delete()
+
+            Notification.objects.create(
+                user=user,
+                content_type='comment_like',
+                object_id=comment.id,
+                action='unlike',
+                description='unliked your comment'
+
+            )
+
             return {'message ': 'You have unliked the comment'}
         else:
             comment_like = CommentLike.objects.create(user=user, comment=comment)
             comment.comment_likes.add(comment_like)
             comment.save()
+
+            if existing_notification:
+                existing_notification.action = 'update_like'
+                existing_notification.is_read = False
+                existing_notification.description = 'liked your comment again'
+                existing_notification.save()
+            else:
+                Notification.objects.create(
+                    user=user,
+                    content_type='comment_like',
+                    object_id=comment.id,
+                    action='like',
+                    description='liked your comment'
+                )
+
             return {'message ': 'You have liked the comment'}
 
     def to_representation(self, instance):
@@ -327,41 +448,49 @@ class HighlightLikeSerializer(ModelSerializer):  # noqa
         user: UserProfile = validated_data['user']
         highlight = validated_data['highlight']
         like = highlight.highlight_likes.filter(user=user).first()
+
+        existing_notification = Notification.objects.filter(
+            user=user,
+            content_type='highlight',
+            object_id=highlight.id,
+            action='like',
+            description='liked your highlight'
+        ).first()
+
         if like:
             like.delete()
+
+            Notification.objects.create(
+                user=user,
+                content_type='highlight',
+                object_id=highlight.id,
+                action='unlike',
+                description='unliked your highlight'
+
+            )
+
             return {'message ': 'You have unliked the highlight'}
         else:
             highlight_like = HighlightLike.objects.create(user=user, highlight=highlight)
             highlight.highlight_likes.add(highlight_like)
             highlight.save()
+
+            if existing_notification:
+                existing_notification.action = 'update_like'
+                existing_notification.is_read = False
+                existing_notification.description = 'liked your highlight again'
+                existing_notification.save()
+            else:
+                Notification.objects.create(
+                    user=user,
+                    content_type='highlight',
+                    object_id=highlight.id,
+                    action='like',
+                    description='liked your highlight'
+                )
             return {'message ': 'You have liked the highlight'}
 
     def to_representation(self, instance):
         if isinstance(instance, dict):
             return instance
         return super().to_representation(instance)
-
-
-class ShareSerializer(ModelSerializer):
-    user = HiddenField(default=CurrentUserDefault())
-    username = ReadOnlyField(source='user.username')
-
-    class Meta:
-        model = Share
-        fields = '__all__'
-        read_only_fields = ['id', 'user']
-
-    def validate(self, data):
-        post_shared_to = data.get('post_shared_to')
-        reels_shared_to = data.get('reels_shared_to')
-        story_shared_to = data.get('story_shared_to')
-        highlight_shared_to = data.get('highlight_shared_to')
-
-        non_empty_count = sum(bool(x) for x in [post_shared_to, reels_shared_to, story_shared_to, highlight_shared_to])
-
-        if non_empty_count != 1:
-            raise ValidationError(
-                "You must specify only one of post_shared_to, reels_shared_to, story_shared_to, or highlight_shared_to")
-
-        return data
-

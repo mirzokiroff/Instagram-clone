@@ -1,17 +1,17 @@
 from django.utils.decorators import method_decorator
 from drf_yasg import utils, openapi
 from rest_framework import status
-from rest_framework.generics import ListCreateAPIView, DestroyAPIView
+from rest_framework.generics import ListCreateAPIView
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated, AllowAny, BasePermission
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from content.models import ReelsLike, Post, Reels, Story, StoryLike, PostLike, Highlight, Comment, CommentLike, \
-    HighlightLike, Share
+    HighlightLike
 from content.serializers import PostSerializer, StorySerializer, StoryLikeSerializer, \
     CommentSerializer, HighlightSerializer, ReelsSerializer, PostLikeSerializer, ReelsLikeSerializer, \
-    CommentLikeSerializer, HighlightLikeSerializer, ShareSerializer
+    CommentLikeSerializer, HighlightLikeSerializer
 
 
 class IsAuthenticatedAndOwner(BasePermission):
@@ -174,10 +174,3 @@ class HighlightLikeViewSet(ListCreateAPIView):
         if current_user:
             queryset = queryset.filter(user=current_user)
         return queryset
-
-
-class ShareViewSet(ListCreateAPIView, DestroyAPIView):
-    queryset = Share.objects.all()
-    serializer_class = ShareSerializer
-    permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
-    http_method_names = 'get', 'post', 'delete'

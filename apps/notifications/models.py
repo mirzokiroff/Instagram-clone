@@ -1,4 +1,4 @@
-from django.db.models import ForeignKey, CASCADE, CharField, IntegerField, BooleanField
+from django.db.models import ForeignKey, CASCADE, CharField, BooleanField
 
 from conf import settings
 from shared.models import BaseModel
@@ -7,6 +7,7 @@ from shared.models import BaseModel
 class Notification(BaseModel):
     user = ForeignKey(settings.AUTH_USER_MODEL, CASCADE, related_name='notifications')
     content_type = CharField(max_length=255)
-    object_id = IntegerField()
-    action = CharField(max_length=255)  # 'like', 'unlike', etc.
+    object_id = CharField(max_length=111)
+    action = CharField(max_length=255)
     is_read = BooleanField(default=False)
+    description = CharField(max_length=222)
