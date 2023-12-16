@@ -4,6 +4,7 @@ from rest_framework.fields import IntegerField, DateTimeField, HiddenField, Curr
 from rest_framework.relations import SlugRelatedField
 from rest_framework.serializers import ModelSerializer, Serializer
 
+from notifications.models import Notification
 from users.models import UserProfile, UserSearch
 from users.oauth2 import oauth2_sign_in
 
@@ -73,18 +74,53 @@ class UserFollowingModelSerializer(ModelSerializer):
     def create(self, validated_data):
         user: UserProfile = validated_data['user']
         follow_user = validated_data['username']
+
+        existing_notification = Notification.objects.filter(
+            user=user,
+            owner=follow_user.username,
+            object_id=follow_user.id,
+            content_type='follower',
+            action='new_follower',
+            description='you have new follower'
+        ).first()
+
         if user != follow_user:
             if user.following.filter(id=follow_user.id).first():
                 user.following.remove(follow_user)
                 follow_user.followers.remove(user)
                 follow_user.save()
                 user.save()
+
+                Notification.objects.create(
+                    user=user,
+                    owner=follow_user.username,
+                    object_id=follow_user.id,
+                    content_type='follower',
+                    action='unfollower',
+                    description='you have new unfollower'
+                )
+
                 return {'message': "you have successfully unsubscribed"}
             else:
                 user.following.add(follow_user)
                 user.save()
                 follow_user.followers.add(user)
                 follow_user.save()
+
+                if existing_notification:
+                    existing_notification.action = 'update_follow'
+                    existing_notification.is_read = False
+                    existing_notification.description = 'following you again'
+                    existing_notification.save()
+                else:
+                    Notification.objects.create(
+                        user=user,
+                        owner=follow_user.username,
+                        object_id=follow_user.id,
+                        content_type='follower',
+                        action='new_follower',
+                        description='you have new follower'
+                    )
                 return {'message': "you have successfully subscribed"}
         else:
             return {'message': "you cannot subscribe to yourself"}

@@ -15,6 +15,6 @@ class NotificationViewSet(ListAPIView):
         queryset = Notification.objects.all()
 
         if current_user:
-            queryset = queryset.filter(user=current_user)
+            queryset = queryset.filter(owner=current_user.id)
             queryset.update(is_read=True)
         return queryset

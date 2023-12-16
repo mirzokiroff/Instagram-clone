@@ -206,8 +206,9 @@ class PostLikeSerializer(ModelSerializer):
         like = post.post_likes.filter(user=user).first()
         existing_notification = Notification.objects.filter(
             user=user,
-            content_type='post',
+            owner=post.user.username,
             object_id=post.id,
+            content_type='post',
             action='like',
             description='liked your post'
         ).first()
@@ -217,6 +218,7 @@ class PostLikeSerializer(ModelSerializer):
 
             Notification.objects.create(
                 user=user,
+                owner=post.user.username,
                 content_type='post',
                 object_id=post.id,
                 action='unlike',
@@ -237,6 +239,7 @@ class PostLikeSerializer(ModelSerializer):
             else:
                 Notification.objects.create(
                     user=user,
+                    owner=post.user.username,
                     content_type='post',
                     object_id=post.id,
                     action='like',
@@ -267,8 +270,9 @@ class StoryLikeSerializer(ModelSerializer):
 
         existing_notification = Notification.objects.filter(
             user=user,
-            content_type='story',
+            owner=story.user.username,
             object_id=story.id,
+            content_type='story',
             action='like',
             description='liked your story'
         ).first()
@@ -278,8 +282,9 @@ class StoryLikeSerializer(ModelSerializer):
 
             Notification.objects.create(
                 user=user,
-                content_type='story',
+                owner=story.user.username,
                 object_id=story.id,
+                content_type='story',
                 action='unlike',
                 description='unliked your story'
             )
@@ -298,8 +303,9 @@ class StoryLikeSerializer(ModelSerializer):
             else:
                 Notification.objects.create(
                     user=user,
-                    content_type='story',
+                    owner=story.user.username,
                     object_id=story.id,
+                    content_type='story',
                     action='like',
                     description='liked your story'
                 )
@@ -328,8 +334,9 @@ class ReelsLikeSerializer(ModelSerializer):
 
         existing_notification = Notification.objects.filter(
             user=user,
-            content_type='reels',
+            owner=reels.user.username,
             object_id=reels.id,
+            content_type='reels',
             action='like',
             description='liked your reel'
         ).first()
@@ -339,8 +346,9 @@ class ReelsLikeSerializer(ModelSerializer):
 
             Notification.objects.create(
                 user=user,
-                content_type='reels',
+                owner=reels.user.username,
                 object_id=reels.id,
+                content_type='reels',
                 action='unlike',
                 description='unliked your reel'
             )
@@ -359,8 +367,9 @@ class ReelsLikeSerializer(ModelSerializer):
             else:
                 Notification.objects.create(
                     user=user,
-                    content_type='reels',
+                    owner=reels.user.username,
                     object_id=reels.id,
+                    content_type='reels',
                     action='like',
                     description='liked your reel'
                 )
@@ -389,8 +398,9 @@ class CommentLikeSerializer(ModelSerializer):
 
         existing_notification = Notification.objects.filter(
             user=user,
-            content_type='comment_like',
+            owner=comment.user.username,
             object_id=comment.id,
+            content_type='comment_like',
             action='like',
             description='liked your comment'
         ).first()
@@ -421,8 +431,9 @@ class CommentLikeSerializer(ModelSerializer):
             else:
                 Notification.objects.create(
                     user=user,
-                    content_type='comment_like',
+                    owner=comment.user.username,
                     object_id=comment.id,
+                    content_type='comment_like',
                     action='like',
                     description='liked your comment'
                 )
@@ -451,8 +462,9 @@ class HighlightLikeSerializer(ModelSerializer):  # noqa
 
         existing_notification = Notification.objects.filter(
             user=user,
-            content_type='highlight',
+            owner=highlight.user.username,
             object_id=highlight.id,
+            content_type='highlight',
             action='like',
             description='liked your highlight'
         ).first()
@@ -462,8 +474,9 @@ class HighlightLikeSerializer(ModelSerializer):  # noqa
 
             Notification.objects.create(
                 user=user,
-                content_type='highlight',
+                owner=highlight.user.username,
                 object_id=highlight.id,
+                content_type='highlight',
                 action='unlike',
                 description='unliked your highlight'
 
@@ -483,8 +496,9 @@ class HighlightLikeSerializer(ModelSerializer):  # noqa
             else:
                 Notification.objects.create(
                     user=user,
-                    content_type='highlight',
+                    owner=highlight.user.username,
                     object_id=highlight.id,
+                    content_type='highlight',
                     action='like',
                     description='liked your highlight'
                 )
