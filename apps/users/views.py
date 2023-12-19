@@ -1,3 +1,4 @@
+import redis
 from django.contrib.auth import authenticate
 from django.http import Http404
 from django.utils.text import slugify
@@ -11,21 +12,41 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from conf import settings
 from content.models import Post
 from content.serializers import PostSerializer
+from .tasks import send_to_gmail
 from users.models import UserProfile, UserSearch
 from users.oauth2 import oauth2_sign_in
 from users.serializers import UserProfileSerializer, RegisterSerializer, LoginSerializer, \
     UserFollowingModelSerializer, UserViewProfileModelSerializer, FollowersFollowingSerializer, \
     SignInWithOauth2Serializer, \
-    SearchUserSerializer
+    SearchUserSerializer, EmailVerySerializer
 
+redis_instance = redis.StrictRedis(host=settings.REDIS_HOST,
+                                  port=settings.REDIS_PORT, db=1)
 
 class IsAuthenticatedAndOwner(BasePermission):
     message = 'You must be the owner of this object.'
 
     def has_object_permission(self, request, view, obj):
         return obj.user == request.user
+
+
+class EmailSignUp(CreateAPIView):
+    serializer_class = EmailVerySerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = EmailVerySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        code = serializer.data.get('code')
+        if code and (email := redis_instance.get(f'{settings.CACHE_KEY_PREFIX}:{code}')):
+            if user := redis_instance.get(f'user:{email}'):
+                redis_instance.delete(f'{settings.CACHE_KEY_PREFIX}:{code}')
+                redis_instance.delete(f'user:{email}')
+                user.save()
+                return Response({"message": 'User is successfully activated'})
+        return Response({"message": 'Code is expired or invalid'})
 
 
 class FollowListCreateAPIVIew(ListCreateAPIView):
@@ -122,6 +143,17 @@ class RegisterView(CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
 
+    def post(self, request, *args, **kwargs):
+        serializer = RegisterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.data
+        if UserProfile.objects.filter(email=data['email']).exists():
+            raise ValueError("Email already is exists")
+        user = UserProfile(**data)
+        send_to_gmail.apply_async(args=[user.email], countdown=5)
+        cache.set(f'user:{user.email}', user, timeout=settings.CACHE_TTL)
+        return Response({"status": True, 'user': user.email}, status=201)
+
     def perform_create(self, serializer):
         instance = serializer.save()
         instance.set_password(instance.password)
@@ -161,6 +193,16 @@ class SignInWithOauth2APIView(CreateAPIView):
 
 
 class SearchUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        search_query = self.kwargs.get('username')
+        queryset = UserProfile.objects.filter(username__icontains=search_query)
+        serializer = UserProfileSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+class SearchUserSaveView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):

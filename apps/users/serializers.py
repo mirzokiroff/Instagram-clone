@@ -3,10 +3,15 @@ from rest_framework.fields import IntegerField, DateTimeField, HiddenField, Curr
     ReadOnlyField
 from rest_framework.relations import SlugRelatedField
 from rest_framework.serializers import ModelSerializer, Serializer
-
+from rest_framework.fields import EmailField
+from django.contrib.auth.hashers import make_password
 from notifications.models import Notification
 from users.models import UserProfile, UserSearch
 from users.oauth2 import oauth2_sign_in
+
+
+class EmailVerySerializer(Serializer):
+    code = CharField(max_length=5)
 
 
 class UserProfileSerializer(ModelSerializer):
@@ -20,28 +25,39 @@ class UserProfileSerializer(ModelSerializer):
     user_reels = ReadOnlyField(source='user_reels.values_list', read_only=True)
     user_stories = ReadOnlyField(source='user_stories.values_list', read_only=True)
     user_highlights = ReadOnlyField(source='user_highlights.values_list', read_only=True)
+    email = EmailField(max_length=128)
+    password = CharField(min_length=8, max_length=128)
+    confirm_password = CharField(min_length=8, max_length=255, write_only=True)
+
+    def validate(self, attrs):
+        password = attrs.pop('password')
+        confirm_password = attrs.pop('confirm_password')
+        if password and confirm_password and password == confirm_password:
+            attrs['password'] = make_password(password)
+            return attrs
+        raise ValueError('Password error!')
 
     # likes = IntegerField(source='likes.count', read_only=True)
 
     class Meta:
         model = UserProfile
-        exclude = ['likes', 'is_superuser', 'is_staff', 'groups', 'user_permissions', 'is_active', 'date_joined',
-                   'password', 'email']
+        exclude = ['likes', 'is_superuser', 'is_staff', 'groups', 'user_permissions', 'is_active', 'date_joined']
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
         data['image'] = instance.avatar
 
-        user_posts = instance.user_posts.values_list('id', flat=True)
+        user_posts = instance.user_posts.values_list('id', flat=True) if instance.user_posts.exists() else []
         data['user_posts'] = [str(post_id) for post_id in user_posts]
 
-        user_reels = instance.user_reels.values_list('id', flat=True)
+        user_reels = instance.user_reels.values_list('id', flat=True) if instance.user_reels.exists() else []
         data['user_reels'] = [str(reel_id) for reel_id in user_reels]
 
-        user_stories = instance.user_stories.values_list('id', flat=True)
+        user_stories = instance.user_stories.values_list('id', flat=True) if instance.user_stories.exists() else []
         data['user_stories'] = [str(story_id) for story_id in user_stories]
 
-        user_highlights = instance.user_highlights.values_list('id', flat=True)
+        user_highlights = instance.user_highlights.values_list('id',
+                                                               flat=True) if instance.user_highlights.exists() else []
         data['user_highlights'] = [str(highlight_id) for highlight_id in user_highlights]
 
         return data

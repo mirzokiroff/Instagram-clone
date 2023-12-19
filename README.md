@@ -8,12 +8,12 @@ Cloning Instagram using Django Rest Framework (DRF) is a challenging and compreh
  - Configure your project settings, database, and static files. 
 ### 2. User Authentication:
 
-- Implement user registration and login functionalities.
+- Implement user registration with email confirmation and login functionalities.
 - Use DRF's built-in authentication classes (Token Authentication) or implement your own.
 - Handle user profiles, including avatar images and basic information. 
 ### 3. User Profiles:
 
-- Create user profiles with information like profile pictures, bio, and follower/following counts.
+- Create user profiles with information like profile pictures, bio, and follower/following counts, posts, reels, highlights, stories.
 - Implement endpoints to view and update user profiles. 
 ### 4. Posts:
 

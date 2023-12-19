@@ -3,7 +3,8 @@ from rest_framework.routers import DefaultRouter
 
 from .views import RegisterView, LoginView, FollowersListAPIVIew, \
     FollowListCreateAPIVIew, ProfileUpdateAPIView, SignInWithOauth2APIView, SearchHistoryView, \
-    SearchUserView, SearchHistoryDeleteDestroyView, FollowersFollowingView, FollowersFollowingDetailView
+    SearchUserView, SearchHistoryDeleteDestroyView, FollowersFollowingView, FollowersFollowingDetailView, \
+    SearchUserSaveView, EmailSignUp
 
 router = DefaultRouter()
 # router.register('user', UserDetailView, basename='user'),
@@ -26,6 +27,8 @@ urlpatterns = [
 
     path("search-history/", SearchHistoryView.as_view(), name="searches"),
     path("search/<str:username>/", SearchUserView.as_view(), name="user_search"),
+    path("search/save/<str:username>/", SearchUserSaveView.as_view(), name="search_save"),
     path("search-history/<int:pk>/", SearchHistoryDeleteDestroyView.as_view(), name="search-delete"),
+    path('email-verify/', EmailSignUp.as_view(), name="email-verify")
 
 ]
