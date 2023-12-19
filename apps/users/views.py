@@ -1,5 +1,5 @@
-import redis
 from django.contrib.auth import authenticate
+from django.core.cache import cache
 from django.http import Http404
 from django.utils.text import slugify
 from rest_framework import status
@@ -23,8 +23,6 @@ from users.serializers import UserProfileSerializer, RegisterSerializer, LoginSe
     SignInWithOauth2Serializer, \
     SearchUserSerializer, EmailVerySerializer
 
-redis_instance = redis.StrictRedis(host=settings.REDIS_HOST,
-                                  port=settings.REDIS_PORT, db=1)
 
 class IsAuthenticatedAndOwner(BasePermission):
     message = 'You must be the owner of this object.'
@@ -40,10 +38,10 @@ class EmailSignUp(CreateAPIView):
         serializer = EmailVerySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         code = serializer.data.get('code')
-        if code and (email := redis_instance.get(f'{settings.CACHE_KEY_PREFIX}:{code}')):
-            if user := redis_instance.get(f'user:{email}'):
-                redis_instance.delete(f'{settings.CACHE_KEY_PREFIX}:{code}')
-                redis_instance.delete(f'user:{email}')
+        if code and (email := cache.get(f'{settings.CACHE_KEY_PREFIX}:{code}')):
+            if user := cache.get(f'user:{email}'):
+                cache.delete(f'{settings.CACHE_KEY_PREFIX}:{code}')
+                cache.delete(f'user:{email}')
                 user.save()
                 return Response({"message": 'User is successfully activated'})
         return Response({"message": 'Code is expired or invalid'})

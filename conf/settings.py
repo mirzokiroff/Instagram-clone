@@ -42,8 +42,6 @@ INSTALLED_APPS = [
     'django_celery_beat'
 ]
 
-
-
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
@@ -178,9 +176,16 @@ STATIC_ROOT = os.path.join(BASE_DIR / 'static/')
 MEDIA_URL = 'media/'
 MEDIA_ROOT = os.path.join(BASE_DIR / 'media/')
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://localhost:6379/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
 
-SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-SESSION_CACHE_ALIAS = "default"
 EMAIL_HOST_USER = 'oybekn033@gmail.com'
 EMAIL_HOST_PASSWORD = 'lxqqztmlarzwexjm'
 # EMAIL_HOST_USER = 'nasriddinovfarrux03@gmail.com'
@@ -189,15 +194,12 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
-CELERY_BROKER_URL = 'redis://localhost:6379/1'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/1'
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
-
-REDIS_HOST = 'localhost'
-REDIS_PORT = 6379
 
 CACHE_TTL = 300
 CACHE_KEY_PREFIX = 'otp'
