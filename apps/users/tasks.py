@@ -1,15 +1,14 @@
 from random import randint
 
-from celery import shared_task
 from django.core.cache import cache
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
-
+from conf.celery import app
 from conf import settings
 from conf.settings import EMAIL_HOST_USER
 
 
-@shared_task
+@app.task
 def send_to_gmail(email):
     print('ACCEPT TASK')
     print(email)

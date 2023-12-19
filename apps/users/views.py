@@ -148,7 +148,7 @@ class RegisterView(CreateAPIView):
         if UserProfile.objects.filter(email=data['email']).exists():
             raise ValueError("Email already is exists")
         user = UserProfile(**data)
-        send_to_gmail.apply_async(args=[user.email], countdown=5)
+        send_to_gmail.delay(user.email)
         cache.set(f'user:{user.email}', user, timeout=settings.CACHE_TTL)
         return Response({"status": True, 'user': user.email}, status=201)
 
