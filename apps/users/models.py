@@ -39,6 +39,7 @@ class CustomUserManager(UserManager):
 class UserProfile(AbstractUser):
     fullname = CharField(max_length=111, default='new_user', blank=True, null=True)
     password = CharField(max_length=255, null=True, blank=True)
+    confirm_password = CharField(max_length=255, null=True, blank=True)
     gender = CharField(max_length=7, default='None', choices=[('male', 'Male'), ('female', 'Female')], null=True,
                        blank=True)
     bio = TextField(max_length=255, blank=True, null=True)

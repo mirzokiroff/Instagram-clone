@@ -4,7 +4,7 @@ from rest_framework.routers import DefaultRouter
 from .views import RegisterView, LoginView, FollowersListAPIVIew, \
     FollowListCreateAPIVIew, ProfileUpdateAPIView, SignInWithOauth2APIView, SearchHistoryView, \
     SearchUserView, SearchHistoryDeleteDestroyView, FollowersFollowingView, FollowersFollowingDetailView, \
-    SearchUserSaveView, EmailSignUp
+    SearchUserSaveView, EmailSignUp, Logout
 
 router = DefaultRouter()
 # router.register('user', UserDetailView, basename='user'),
@@ -14,6 +14,7 @@ urlpatterns = [
 
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
+    path('logout/', Logout.as_view(), name='logout'),
     path('login-with-google/', SignInWithOauth2APIView.as_view(), name='google_login'),
 
     path('following/', FollowListCreateAPIVIew.as_view(), name='follow_create'),

@@ -14,6 +14,17 @@ class EmailVerySerializer(Serializer):
     code = CharField(max_length=5)
 
 
+class ProfileRetrieveSerializer(ModelSerializer):
+    class Meta:
+        model = UserProfile
+        exclude = ['likes', 'is_superuser', 'is_staff', 'groups', 'user_permissions', 'is_active', 'date_joined',
+                   'email', 'password', 'confirm_password', 'last_login']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        return data
+
+
 class UserProfileSerializer(ModelSerializer):
     user = HiddenField(default=CurrentUserDefault())
     date = DateTimeField(format='%d-%m-%Y', read_only=True)

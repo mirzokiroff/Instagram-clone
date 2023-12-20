@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate
+from django.contrib.auth.hashers import make_password
 from django.core.cache import cache
 from django.http import Http404
 from django.utils.text import slugify
@@ -21,7 +22,7 @@ from users.oauth2 import oauth2_sign_in
 from users.serializers import UserProfileSerializer, RegisterSerializer, LoginSerializer, \
     UserFollowingModelSerializer, UserViewProfileModelSerializer, FollowersFollowingSerializer, \
     SignInWithOauth2Serializer, \
-    SearchUserSerializer, EmailVerySerializer
+    SearchUserSerializer, EmailVerySerializer, ProfileRetrieveSerializer
 
 
 class IsAuthenticatedAndOwner(BasePermission):
@@ -104,7 +105,7 @@ class FollowersFollowingDetailView(ListAPIView):
 
 
 class ProfileUpdateAPIView(RetrieveUpdateDestroyAPIView):
-    serializer_class = UserProfileSerializer
+    serializer_class = ProfileRetrieveSerializer
     parser_classes = [MultiPartParser]
     http_method_names = ('get', 'patch')
     permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]
@@ -113,27 +114,34 @@ class ProfileUpdateAPIView(RetrieveUpdateDestroyAPIView):
         user = self.request.user
         if user.is_authenticated:
             return user
-        user = UserProfile.objects.filter(username=slugify(self.kwargs['username']))
-        if user:
-            return user.first()
-        raise Http404
+
+        username_slug = slugify(self.kwargs['username'])
+        try:
+            user = UserProfile.objects.get(username=username_slug)
+            return user
+        except UserProfile.DoesNotExist:
+            raise Http404("User does not exist")
 
     def update(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            if request.user != self.get_object():
-                raise PermissionDenied()
-            partial = kwargs.pop('partial', False)
-            instance = request.user
-            serializer = self.get_serializer(instance, data=request.data, partial=partial)
-            serializer.is_valid(raise_exception=True)
-            self.perform_update(serializer)
-            instance.save()
+        if not request.user.is_authenticated:
+            return Response({"detail": "Authentication credentials were not provided."},
+                            status=status.HTTP_401_UNAUTHORIZED)
 
-            if getattr(instance, '_prefetched_objects_cache', None):
-                instance._prefetched_objects_cache = {}
+        if request.user != self.get_object():
+            return Response({"detail": "You do not have permission to perform this action."},
+                            status=status.HTTP_403_FORBIDDEN)
 
-            return Response(serializer.data)
-        raise NotAuthenticated()
+        partial = kwargs.pop('partial', False)
+        instance = request.user
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        instance.save()
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class RegisterView(CreateAPIView):
@@ -144,9 +152,12 @@ class RegisterView(CreateAPIView):
     def post(self, request, *args, **kwargs):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        data = serializer.data
+        data = serializer.validated_data
         if UserProfile.objects.filter(email=data['email']).exists():
             raise ValueError("Email already is exists")
+
+        data['password'] = make_password(data['password'])
+
         user = UserProfile(**data)
         send_to_gmail.delay(user.email)
         cache.set(f'user:{user.email}', user, timeout=settings.CACHE_TTL)
@@ -154,7 +165,8 @@ class RegisterView(CreateAPIView):
 
     def perform_create(self, serializer):
         instance = serializer.save()
-        instance.set_password(instance.password)
+        hashed_password = make_password(instance.password)
+        instance.password = hashed_password
         instance.save()
 
 
@@ -172,6 +184,13 @@ class LoginView(CreateAPIView):
             return Response({"refresh": str(refresh), "access": str(refresh.access_token)})  # noqa
         else:
             return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class Logout(APIView):
+    def get(self, request, format=None):
+        # simply delete the token to force a login
+        request.user.access_token.delete()
+        return Response(status=status.HTTP_200_OK)
 
 
 class SignInWithOauth2APIView(CreateAPIView):
