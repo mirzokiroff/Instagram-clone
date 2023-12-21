@@ -3,26 +3,29 @@ from django.contrib.auth.hashers import make_password
 from django.core.cache import cache
 from django.http import Http404
 from django.utils.text import slugify
+from google.auth.transport import requests
+from google.oauth2 import id_token
 from rest_framework import status
-from rest_framework.exceptions import NotAuthenticated, PermissionDenied, ValidationError
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListCreateAPIView, ListAPIView, \
     RetrieveUpdateDestroyAPIView, CreateAPIView, RetrieveAPIView
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from conf import settings
 from content.models import Post
 from content.serializers import PostSerializer
-from .tasks import send_to_gmail
 from users.models import UserProfile, UserSearch
 from users.oauth2 import oauth2_sign_in
 from users.serializers import UserProfileSerializer, RegisterSerializer, LoginSerializer, \
     UserFollowingModelSerializer, UserViewProfileModelSerializer, FollowersFollowingSerializer, \
     SignInWithOauth2Serializer, \
-    SearchUserSerializer, EmailVerySerializer, ProfileRetrieveSerializer
+    SearchUserSerializer, EmailVerySerializer, ProfileRetrieveSerializer, LogoutSerializer
+from .tasks import send_to_gmail
 
 
 class IsAuthenticatedAndOwner(BasePermission):
@@ -32,7 +35,7 @@ class IsAuthenticatedAndOwner(BasePermission):
         return obj.user == request.user
 
 
-class EmailSignUp(CreateAPIView):
+class EmailSignUpView(CreateAPIView):
     serializer_class = EmailVerySerializer
 
     def post(self, request, *args, **kwargs):
@@ -157,6 +160,7 @@ class RegisterView(CreateAPIView):
             raise ValueError("Email already is exists")
 
         data['password'] = make_password(data['password'])
+        data['confirm_password'] = make_password(data['confirm_password'])
 
         user = UserProfile(**data)
         send_to_gmail.delay(user.email)
@@ -177,20 +181,35 @@ class LoginView(CreateAPIView):
     def create(self, request, *args, **kwargs):
         username = request.data.get("username")
         password = request.data.get("password")
-        # confirm_password = request.data.get("confirm_password")
-        user = authenticate(username=username, password=password)  # confirm_password=confirm_password) # noqa
+        confirm_password = request.data.get("confirm_password")
+        user = authenticate(username=username, password=password, confirm_password=confirm_password)
         if user in UserProfile.objects.all():
-            refresh = RefreshToken.for_user(user)
-            return Response({"refresh": str(refresh), "access": str(refresh.access_token)})  # noqa
+            if password == confirm_password:
+                refresh = RefreshToken.for_user(user)
+                return Response({"refresh": str(refresh), "access": str(refresh.access_token)})  # noqa
+            else:
+                return Response({"ERROR": "The password do not match"}, status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-class Logout(APIView):
-    def get(self, request, format=None):
-        # simply delete the token to force a login
-        request.user.access_token.delete()
-        return Response(status=status.HTTP_200_OK)
+class LogoutView(CreateAPIView):
+    serializer_class = LogoutSerializer
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        password = request.data.get("password")
+        confirm_password = request.data.get("confirm_password")
+        user = request.user
+
+        if user in UserProfile.objects.all():
+            if password == confirm_password:
+                self.request.user.delete()
+                return Response({"message": "You successfully logged out"})
+            else:
+                return Response({"ERROR": "The passwords do not match"}, status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"ERROR": "Invalid credentials"}, status.HTTP_401_UNAUTHORIZED)
 
 
 class SignInWithOauth2APIView(CreateAPIView):

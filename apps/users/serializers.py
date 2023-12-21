@@ -20,6 +20,22 @@ class ProfileRetrieveSerializer(ModelSerializer):
         exclude = ['likes', 'is_superuser', 'is_staff', 'groups', 'user_permissions', 'is_active', 'date_joined',
                    'email', 'password', 'confirm_password', 'last_login']
 
+        read_only_fields = ['likes', 'is_superuser', 'is_staff', 'groups', 'user_permissions', 'is_active',
+                            'date_joined', 'email', 'password', 'confirm_password', 'last_login', 'followers',
+                            'following', 'user_posts', 'user_reels', 'user_stories', 'user_highlights']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        return data
+
+
+class ProfileUpdateSerializer(ModelSerializer):
+    class Meta:
+        model = UserProfile
+        exclude = ['likes', 'is_superuser', 'is_staff', 'groups', 'user_permissions', 'is_active', 'date_joined',
+                   'email', 'password', 'confirm_password', 'last_login', 'followers', 'following', 'user_posts',
+                   'user_reels', 'user_stories', 'user_highlights']
+
     def to_representation(self, instance):
         data = super().to_representation(instance)
         return data
@@ -181,15 +197,36 @@ class FollowersFollowingSerializer(ModelSerializer):
 class LoginSerializer(ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ['username', 'password']
+        fields = ['username', 'password', 'confirm_password']
         username = CharField(max_length=111)
         password = CharField(write_only=True)
+        confirm_password = CharField(write_only=True)
+
+
+class LogoutSerializer(ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['password', 'confirm_password']
+        password = CharField(write_only=True)
+        confirm_password = CharField(write_only=True)
 
 
 class RegisterSerializer(ModelSerializer):
+    password = CharField(write_only=True)
+    confirm_password = CharField(write_only=True)
+
+    def validate(self, data):
+        password = data.get('password')
+        confirm_password = data.get('confirm_password')
+
+        if password and confirm_password and password != confirm_password:
+            raise ValidationError("Passwords do not match.")
+
+        return data
+
     class Meta:
         model = UserProfile
-        fields = ('username', 'email', 'password')
+        fields = ('username', 'email', 'password', 'confirm_password')
 
 
 class SignInWithOauth2Serializer(Serializer):
