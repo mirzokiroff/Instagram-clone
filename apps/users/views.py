@@ -3,8 +3,6 @@ from django.contrib.auth.hashers import make_password
 from django.core.cache import cache
 from django.http import Http404
 from django.utils.text import slugify
-from google.auth.transport import requests
-from google.oauth2 import id_token
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListCreateAPIView, ListAPIView, \
@@ -13,7 +11,6 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from conf import settings
@@ -24,7 +21,7 @@ from users.oauth2 import oauth2_sign_in
 from users.serializers import UserProfileSerializer, RegisterSerializer, LoginSerializer, \
     UserFollowingModelSerializer, UserViewProfileModelSerializer, FollowersFollowingSerializer, \
     SignInWithOauth2Serializer, \
-    SearchUserSerializer, EmailVerySerializer, ProfileRetrieveSerializer, LogoutSerializer
+    SearchUserSerializer, EmailVerySerializer, ProfileUpdateSerializer, LogoutSerializer
 from .tasks import send_to_gmail
 
 
@@ -108,7 +105,7 @@ class FollowersFollowingDetailView(ListAPIView):
 
 
 class ProfileUpdateAPIView(RetrieveUpdateDestroyAPIView):
-    serializer_class = ProfileRetrieveSerializer
+    serializer_class = ProfileUpdateSerializer
     parser_classes = [MultiPartParser]
     http_method_names = ('get', 'patch')
     permission_classes = [IsAuthenticated, IsAuthenticatedAndOwner]

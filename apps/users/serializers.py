@@ -1,10 +1,11 @@
+from django.contrib.auth.hashers import make_password
 from rest_framework.exceptions import ValidationError
+from rest_framework.fields import EmailField
 from rest_framework.fields import IntegerField, DateTimeField, HiddenField, CurrentUserDefault, CharField, \
     ReadOnlyField
 from rest_framework.relations import SlugRelatedField
 from rest_framework.serializers import ModelSerializer, Serializer
-from rest_framework.fields import EmailField
-from django.contrib.auth.hashers import make_password
+
 from notifications.models import Notification
 from users.models import UserProfile, UserSearch
 from users.oauth2 import oauth2_sign_in
@@ -14,27 +15,17 @@ class EmailVerySerializer(Serializer):
     code = CharField(max_length=5)
 
 
-class ProfileRetrieveSerializer(ModelSerializer):
+class ProfileUpdateSerializer(ModelSerializer):
+    username = CharField(required=False)
+
     class Meta:
         model = UserProfile
         exclude = ['likes', 'is_superuser', 'is_staff', 'groups', 'user_permissions', 'is_active', 'date_joined',
-                   'email', 'password', 'confirm_password', 'last_login']
+                   'email', 'password', 'confirm_password']
 
         read_only_fields = ['likes', 'is_superuser', 'is_staff', 'groups', 'user_permissions', 'is_active',
-                            'date_joined', 'email', 'password', 'confirm_password', 'last_login', 'followers',
+                            'date_joined', 'email', 'password', 'confirm_password', 'followers',
                             'following', 'user_posts', 'user_reels', 'user_stories', 'user_highlights']
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        return data
-
-
-class ProfileUpdateSerializer(ModelSerializer):
-    class Meta:
-        model = UserProfile
-        exclude = ['likes', 'is_superuser', 'is_staff', 'groups', 'user_permissions', 'is_active', 'date_joined',
-                   'email', 'password', 'confirm_password', 'last_login', 'followers', 'following', 'user_posts',
-                   'user_reels', 'user_stories', 'user_highlights']
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -44,7 +35,6 @@ class ProfileUpdateSerializer(ModelSerializer):
 class UserProfileSerializer(ModelSerializer):
     user = HiddenField(default=CurrentUserDefault())
     date = DateTimeField(format='%d-%m-%Y', read_only=True)
-    last_login = DateTimeField(format='%d-%m-%Y', read_only=True)
     following = IntegerField(source='following.count', read_only=True)
     followers = IntegerField(source='followers.count', read_only=True)
 
