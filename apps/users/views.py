@@ -203,11 +203,11 @@ class LogoutView(CreateAPIView):
         user = request.user
 
         if user in UserProfile.objects.all():
-            if password == confirm_password:
+            if password == confirm_password and user.check_password(password):
                 self.request.user.delete()
                 return Response({"message": "You successfully logged out"})
             else:
-                return Response({"ERROR": "The passwords do not match"}, status.HTTP_400_BAD_REQUEST)
+                return Response({"ERROR": "The passwords do not match or are incorrect"}, status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"ERROR": "Invalid credentials"}, status.HTTP_401_UNAUTHORIZED)
 
