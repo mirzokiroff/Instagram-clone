@@ -19,49 +19,38 @@ Cloning Instagram using Django Rest Framework (DRF) is a challenging and compreh
 
 Design models for user posts including images, captions, and timestamps.
 Implement API endpoints to create, view, update, and delete posts.
-Add features like liking, commenting, and sharing posts.
+Added features like, unlike, update like, commenting.
 
 ### 5. Follow/Follower System:
 
 Implement a system for users to follow other users and view their posts.
 Build API endpoints to manage followers and followings.
 Allow users to see a feed of posts from users they follow. 
+There are follow, unfollow, update follow features
 ### 6. Likes and Comments:
 
-Create models for post likes and comments.
-Implement API endpoints to like/unlike posts and add/view comments. 
-### 7. Direct Messaging:
+Create models for post, reels, story, highlight likes and post , reels comments.
+API like/unlike/update_like for posts, reels, stories, highlights, comments and add/view comments. 
+### 7.Search:
 
-Design models for private messages between users.
-Implement API endpoints for sending and receiving messages.
-Consider adding real-time notifications for new messages. 
-### 8. Explore and Search:
+You can search for your friends or any person you want in the Search function.
+Search is perfectly designed like Instagram's search engine
+### 8. Some functions related to the User:
 
-Build a feature that allows users to explore new content and discover new users.
-Implement search functionality to find users and posts. 
-### 9. User Activity Feed:
+Created API for shows users their own activity, such as likes and comments on their posts.
+Likes and comments are also possible for posts, reels, stories, highlights, comments posted by the user himself.
+### 9. Notifications:
 
-Create a feed that shows users their own activity, such as likes and comments on their posts.
-### 10. Hashtags and Trends:
+The notification is perfected just like the notification of Instagram, when a user clicks like for another user's post, reels, highlight, story and comment, the owner of the object that is liked is notified. also happens
+### 10. Testing:
 
-Implement the ability to add hashtags to posts.
-Create a feature that displays trending hashtags.
-### 11. Notifications:
+test, everything done has been tested
+### 12. Deployment:
 
-Build a system for sending notifications to users when they receive likes, comments, or new followers.
-Consider using real-time technologies like WebSockets for instant notifications.
-### 12. UI/UX Design:
+After the work was completed, Instagram-clone was deployed to the server and security measures were also taken, and the domain name instagram-clone.uz was also connected, now because there are problems with this domain, a new domain name instagram-clone.org is in the process of connecting
+### 13. Documentation:
 
-Design the user interface for the web application using HTML, CSS, and possibly a front-end framework like React.
-Ensure responsive design for various devices.
-### 13. Testing:
+and a documentation has been created, which will give you information about how things are done in instagram-clone
+### 14. Chat:
 
-Write unit tests and integration tests for various functionalities.
-Test user authentication, post creation, following, liking, and other key features.
-### 14. Deployment:
-
-Deploy your Instagram clone to a hosting provider.
-Configure web server, database, and security settings for production.
-### 15. Documentation:
-
-Create comprehensive documentation for your project, including API endpoints, models, and setup instructions.
+The chat part is not finished yet due to temporary technical work, but will be available to users soon after it is perfected
