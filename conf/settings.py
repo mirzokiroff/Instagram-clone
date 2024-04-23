@@ -186,8 +186,8 @@ CACHES = {
     }
 }
 
-EMAIL_HOST_USER = 'nasriddinovfarrux03@gmail.com'
-EMAIL_HOST_PASSWORD = 'avvalcuvlvibldas'
+EMAIL_HOST_USER = 'your_email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your_email_host_password'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
