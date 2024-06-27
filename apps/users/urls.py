@@ -22,14 +22,15 @@ urlpatterns = [
 
     path('followers-following/<str:username>/', FollowersFollowingView.as_view(), name='followers_following'),
 
-    path('followers-following- detail/', FollowersFollowingDetailView.as_view(), name='followers_following_detail'),
+    path('followers-following-detail/', FollowersFollowingDetailView.as_view(), name='followers_following_detail'),
 
-    path('profile', ProfileUpdateAPIView.as_view(), name='profile_retrieve_update_destroy_api'),
+    path('profile', ProfileUpdateAPIView.as_view(), name='profile_retrieve_update'),
 
     path("search-history/", SearchHistoryView.as_view(), name="searches"),
     path("search/<str:username>/", SearchUserView.as_view(), name="user_search"),
     path("search/save/<str:username>/", SearchUserSaveView.as_view(), name="search_save"),
     path("search-history/<int:pk>/", SearchHistoryDeleteDestroyView.as_view(), name="search-delete"),
+
     path('email-verify/', EmailSignUpView.as_view(), name="email-verify")
 
 ]
